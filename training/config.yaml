@@ -26,7 +26,7 @@ datasets:
 debug: false
 dec_ffn_kernel_size: 9
 dec_layers: 4
-decay_steps: 40000
+decay_steps: 20000
 decoder_type: fft
 dict_dir: ''
 diff_decoder_type: wavenet
@@ -73,7 +73,7 @@ lambda_word_dur: 1.0
 load_ckpt: ''
 log_interval: 100
 loud_norm: false
-lr: 0.0006
+lr: 0.0008
 max_beta: 0.02
 max_epochs: 3000
 max_eval_sentences: 1

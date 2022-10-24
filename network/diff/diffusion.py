@@ -256,7 +256,7 @@ class GaussianDiffusion(nn.Module):
                 shape = (cond.shape[0], 1, self.mel_bins, cond.shape[2])
                 x = torch.randn(shape, device=device)
             '''
-            if kwargs['use_gt_mel']:
+            if 'use_gt_mel' in kwargs.keys() and kwargs['use_gt_mel']:
                 t =kwargs['add_noise_step']
                 print('===>using ground truth mel as start, please make sure parameter "key==0" !')
                 fs2_mels = ref_mels
