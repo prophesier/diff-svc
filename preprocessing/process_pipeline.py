@@ -1,16 +1,21 @@
 '''
     file -> temporary_dict -> processed_input -> batch
 '''
+from webbrowser import get
 from utils.hparams import hparams
 from network.vocoders.base_vocoder import VOCODERS
 import numpy as np
 import traceback
-from librosa import note_to_midi
+import librosa
 import os
-from preprocessing.data_gen_utils import get_pitch_parselmouth
+import soundfile as sf
+from pathlib import Path
+from preprocessing.data_gen_utils import get_pitch_parselmouth,get_pitch_crepe
 from preprocessing.base_binarizer import BinarizationError
 import torch
 import utils
+import parselmouth
+from network.vocoders.base_vocoder import get_vocoder_cls
 
 class File2Batch:
     '''
@@ -22,17 +27,40 @@ class File2Batch:
         '''
             read from file, store data in temporary dicts
         '''
-        raw_data_dir = hparams['raw_data_dir']
+        raw_data_dir = Path(hparams['raw_data_dir'])
         # meta_midi = json.load(open(os.path.join(raw_data_dir, 'meta.json')))   # [list of dict]
-        utterance_labels = open(os.path.join(raw_data_dir, 'transcriptions.txt'), encoding='utf-8').readlines()
+        
+        # if hparams['perform_enhance'] and not hparams['infer']:
+        #     vocoder=get_vocoder_cls(hparams)()
+        #     raw_files = list(raw_data_dir.rglob(f"*.wav"))
+        #     dic=[]
+        #     time_step = hparams['hop_size'] / hparams['audio_sample_rate']
+        #     f0_min = hparams['f0_min']
+        #     f0_max = hparams['f0_max']
+        #     for file in raw_files:
+        #         y, sr = librosa.load(file, sr=hparams['audio_sample_rate'])
+        #         f0 = parselmouth.Sound(y, hparams['audio_sample_rate']).to_pitch_ac(
+        #         time_step=time_step , voicing_threshold=0.6,
+        #         pitch_floor=f0_min, pitch_ceiling=f0_max).selected_array['frequency']
+        #         f0_mean=np.mean(f0[f0>0])
+        #         dic.append(f0_mean)
+        #     for idx in np.where(dic>np.percentile(dic, 80))[0]:
+        #         file=raw_files[idx]
+        #         wav,mel=vocoder.wav2spec(str(file))
+        #         f0,_=get_pitch_parselmouth(wav,mel,hparams)
+        #         f0[f0>0]=f0[f0>0]*(2**(2/12))
+        #         wav_pred=vocoder.spec2wav(torch.FloatTensor(mel),f0=torch.FloatTensor(f0))
+        #         sf.write(file.with_name(file.name[:-4]+'_high.wav'), wav_pred, 24000, 'PCM_16')
+        utterance_labels = list(raw_data_dir.rglob(f"*.wav"))
+        #open(os.path.join(raw_data_dir, 'transcriptions.txt'), encoding='utf-8').readlines()
 
         all_temp_dict = {}
         for utterance_label in utterance_labels:
-            song_info = utterance_label.split('|')
-            item_name = raw_item_name = song_info[0]
+            #song_info = utterance_label.split('|')
+            item_name =utterance_label#raw_item_name = song_info[0]
+            # print(item_name)
             temp_dict = {}
-
-            temp_dict['wav_fn'] = f'{raw_data_dir}/wavs/{item_name}.wav'
+            temp_dict['wav_fn'] =str(utterance_label)#f'{raw_data_dir}/wavs/{item_name}.wav'
             # temp_dict['txt'] = song_info[1]
 
             # temp_dict['ph'] = song_info[2]
@@ -44,7 +72,7 @@ class File2Batch:
             #                        for x in song_info[3].split(" ")])
             # temp_dict['midi_dur'] = np.array([float(x) for x in song_info[4].split(" ")])
             # temp_dict['is_slur'] = np.array([int(x) for x in song_info[6].split(" ")])
-            temp_dict['spk_id'] = 'opencpop'
+            temp_dict['spk_id'] = hparams['speaker_id']
             # assert temp_dict['pitch_midi'].shape == temp_dict['midi_dur'].shape == temp_dict['is_slur'].shape, \
                 # (temp_dict['pitch_midi'].shape, temp_dict['midi_dur'].shape, temp_dict['is_slur'].shape)
 
@@ -59,7 +87,10 @@ class File2Batch:
         '''
         def get_pitch(wav, mel):
             # get ground truth f0 by self.get_pitch_algorithm
-            gt_f0, gt_pitch_coarse = get_pitch_parselmouth(wav, mel, hparams)
+            if hparams['use_crepe']:
+                gt_f0, gt_pitch_coarse = get_pitch_crepe(wav, mel, hparams)
+            else:
+                gt_f0, gt_pitch_coarse = get_pitch_parselmouth(wav, mel, hparams)
             if sum(gt_f0) == 0:
                 raise BinarizationError("Empty **gt** f0")
             processed_input['f0'] = gt_f0
@@ -88,6 +119,9 @@ class File2Batch:
             'sec': len(wav) / hparams['audio_sample_rate'], 'len': mel.shape[0]
         }
         processed_input = {**temp_dict, **processed_input} # merge two dicts
+        processed_input['spec_min']=np.min(mel,axis=0)
+        processed_input['spec_max']=np.max(mel,axis=0)
+        #(processed_input['spec_min'].shape)
         try:
             if binarization_args['with_f0']:
                 get_pitch(wav, mel)
@@ -96,10 +130,10 @@ class File2Batch:
                     hubert_encoded = processed_input['hubert'] = encoder.encode(temp_dict['wav_fn'])
                 except:
                     traceback.print_exc()
-                    raise BinarizationError(f"hubert encode error")
+                    raise Exception(f"hubert encode error")
                 if binarization_args['with_align']:
                     get_align(temp_dict, mel, hubert_encoded)
-        except BinarizationError as e:
+        except Exception as e:
             print(f"| Skip item ({e}). item_name: {item_name}, wav_fn: {temp_dict['wav_fn']}")
             return None
         return processed_input

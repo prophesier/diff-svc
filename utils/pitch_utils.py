@@ -52,7 +52,6 @@ def norm_interp_f0(f0, hparams):
     if sum(uv) == len(f0):
         f0[uv] = 0
     elif sum(uv) > 0:
-        
         f0[uv] = np.interp(np.where(uv)[0], np.where(~uv)[0], f0[~uv])
     uv = torch.FloatTensor(uv)
     f0 = torch.FloatTensor(f0)

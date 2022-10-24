@@ -24,15 +24,6 @@ DIFF_DECODERS = {
 
 
 class SVCDataset(FastSpeechDataset):
-    # def __getitem__(self, index):
-    #     sample = super(SVCDataset, self).__getitem__(index)
-    #     item = self._get_item(index)
-    #     sample['pitch_midi'] = torch.LongTensor(item['pitch_midi'])[:hparams['max_frames']]
-    #     sample['midi_dur'] = torch.FloatTensor(item['midi_dur'])[:hparams['max_frames']]
-    #     sample['is_slur'] = torch.LongTensor(item['is_slur'])[:hparams['max_frames']]
-    #     sample['word_boundary'] = torch.LongTensor(item['word_boundary'])[:hparams['max_frames']]
-    #     return sample
-
     def collater(self, samples):
         from preprocessing.process_pipeline import File2Batch
         return File2Batch.processed_input2batch(samples)

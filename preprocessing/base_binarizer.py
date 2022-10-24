@@ -1,12 +1,13 @@
 import os
+from webbrowser import get
 os.environ["OMP_NUM_THREADS"] = "1"
-
+import yaml
 from utils.multiprocess_utils import chunked_multiprocess_run
 import random
 import json
 # from resemblyzer import VoiceEncoder
 from tqdm import tqdm
-from preprocessing.data_gen_utils import get_mel2ph, get_pitch_parselmouth, build_phone_encoder
+from preprocessing.data_gen_utils import get_mel2ph, get_pitch_parselmouth, build_phone_encoder,get_pitch_crepe
 from utils.hparams import set_hparams, hparams
 import numpy as np
 from utils.indexed_datasets import IndexedDatasetBuilder
@@ -56,7 +57,10 @@ class BaseBinarizer:
             random.shuffle(self.item_names)
         
         # set default get_pitch algorithm
-        self.get_pitch_algorithm = get_pitch_parselmouth
+        if hparams['use_crepe']:
+            self.get_pitch_algorithm = get_pitch_crepe
+        else:
+            self.get_pitch_algorithm = get_pitch_parselmouth
 
     def load_meta_data(self):
         raise NotImplementedError
@@ -144,13 +148,16 @@ class BaseBinarizer:
 
         for item_name, meta_data in self.meta_data_iterator(prefix):
             args.append([item_name, meta_data, self.binarization_args])
-
+        spec_min=[]
+        spec_max=[]
         # code for single cpu processing
         for i in tqdm(reversed(range(len(args))), total=len(args)):
             a = args[i]
             item = self.process_item(*a)
             if item is None:
                 continue
+            spec_min.append(item['spec_min'])
+            spec_max.append(item['spec_max'])
             # item['spk_embe'] = voice_encoder.embed_utterance(item['wav']) \
             #     if self.binardization_args['with_spk_embed'] else None
             if not self.binarization_args['with_wav'] and 'wav' in item:
@@ -164,7 +171,16 @@ class BaseBinarizer:
             total_sec += item['sec']
             # if item.get('f0') is not None:
             #     f0s.append(item['f0'])
-        
+        if prefix=='train':
+            spec_max=np.max(spec_max,0)
+            spec_min=np.min(spec_min,0)
+            print(spec_max.shape)
+            with open(hparams['config_path'], encoding='utf-8') as f:
+                _hparams=yaml.safe_load(f)
+                _hparams['spec_max']=spec_max.tolist()
+                _hparams['spec_min']=spec_min.tolist()
+            with open(hparams['config_path'], 'w', encoding='utf-8') as f:
+                yaml.safe_dump(_hparams,f)
         builder.finalize()
         np.save(f'{data_dir}/{prefix}_lengths.npy', lengths)
         if len(f0s) > 0:

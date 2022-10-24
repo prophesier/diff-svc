@@ -34,7 +34,10 @@ class SVCBinarizer(BaseBinarizer):
 
     def split_train_test_set(self, item_names):
         item_names = deepcopy(item_names)
-        test_item_names = [x for x in item_names if any([x.startswith(ts) for ts in hparams['test_prefixes']])]
+        if hparams['choose_test_manually']:
+            test_item_names = [x for x in item_names if any([x.startswith(ts) for ts in hparams['test_prefixes']])]
+        else:
+            test_item_names = item_names[-5:]
         train_item_names = [x for x in item_names if x not in set(test_item_names)]
         logging.info("train {}".format(len(train_item_names)))
         logging.info("test {}".format(len(test_item_names)))

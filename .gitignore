@@ -5,7 +5,6 @@ __pycache__/
 local_tools/
 *.ckpt
 *.pth
-*.wav
 infer_out/
 *.onnx
 data/
