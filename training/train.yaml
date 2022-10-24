@@ -308,7 +308,7 @@ spec_min:
 - -6.0
 spk_cond_steps: []
 stop_token_weight: 5.0
-task_cls: src.SVC_task.SVCTask
+task_cls: training.task.SVC_task.SVCTask
 test_ids: []
 test_input_dir: ''
 test_num: 0
@@ -337,7 +337,7 @@ use_var_enc: false
 val_check_interval: 2000
 valid_num: 0
 valid_set_name: valid
-vocoder: src.vocoders.hifigan.HifiGAN
+vocoder: network.vocoders.hifigan.HifiGAN
 vocoder_ckpt: checkpoints/0109_hifigan_bigpopcs_hop128
 warmup_updates: 2000
 wav2spec_eps: 1e-6

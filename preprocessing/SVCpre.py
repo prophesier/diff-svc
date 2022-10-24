@@ -19,7 +19,7 @@ from copy import deepcopy
 
 import logging
 
-from preprocessing.pipeline import File2Batch
+from preprocessing.process_pipeline import File2Batch
 from utils.hparams import hparams
 from preprocessing.base_binarizer import BaseBinarizer
 

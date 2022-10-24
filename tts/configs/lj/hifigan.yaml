@@ -1,3 +1,0 @@
-base_config:
-  - tts/configs/hifigan.yaml
-  - tts/configs/lj/base_mel2wav.yaml

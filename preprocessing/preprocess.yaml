@@ -55,7 +55,7 @@ test_prefixes: [
 #task_cls: src.diffsinger_task.AuxDecoderMIDITask
 #vocoder: src.singingvocoder.highgan.HighGAN
 #vocoder_ckpt: checkpoints/h_2_model/checkpoint-530000steps.pkl
-vocoder: src.vocodershifigan.HifiGAN
+vocoder: network.vocodershifigan.HifiGAN
 vocoder_ckpt: checkpoints/0109_hifigan_bigpopcs_hop128
 
 use_nsf: true

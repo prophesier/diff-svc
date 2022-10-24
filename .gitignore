@@ -5,11 +5,12 @@ __pycache__/
 local_tools/
 *.ckpt
 *.pth
+*.wav
 infer_out/
 *.onnx
 data/
 checkpoints/
-
+processcmd.py
 .vscode
 WPy64-38100
 Winpython64-3.8.10.0dot.exe

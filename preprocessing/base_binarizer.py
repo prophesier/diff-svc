@@ -174,7 +174,7 @@ class BaseBinarizer:
         print(f"| {prefix} total duration: {total_sec:.3f}s")
 
     def process_item(self, item_name, meta_data, binarization_args):
-        from preprocessing.pipeline import File2Batch
+        from preprocessing.process_pipeline import File2Batch
         return File2Batch.temporary_dict2processed_input(item_name, meta_data, self.phone_encoder, binarization_args)
 
     def get_align(self, meta_data, mel, phone_encoded, res):

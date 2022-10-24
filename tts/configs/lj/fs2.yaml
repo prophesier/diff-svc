@@ -1,3 +1,0 @@
-base_config:
-  - tts/configs/fs2.yaml
-  - tts/configs/lj/base_text2mel.yaml
