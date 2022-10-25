@@ -51,7 +51,9 @@ class File2Batch:
         #         f0[f0>0]=f0[f0>0]*(2**(2/12))
         #         wav_pred=vocoder.spec2wav(torch.FloatTensor(mel),f0=torch.FloatTensor(f0))
         #         sf.write(file.with_name(file.name[:-4]+'_high.wav'), wav_pred, 24000, 'PCM_16')
-        utterance_labels = list(raw_data_dir.rglob(f"*.wav"))
+        utterance_labels =[]
+        utterance_labels.extend(list(raw_data_dir.rglob(f"*.wav")))
+        utterance_labels.extend(list(raw_data_dir.rglob(f"*.ogg")))
         #open(os.path.join(raw_data_dir, 'transcriptions.txt'), encoding='utf-8').readlines()
 
         all_temp_dict = {}

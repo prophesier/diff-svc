@@ -1,27 +1,28 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
-## update:
->现已支持对自定义数据集的训练\
-修改config中的配置，预处理时将自动将统计数据写入config中，若需要移动config位置，请修改config中对自身位置的引用\
-wav数据直接放在raw_data_dir下即可，自适应任何目录结构
-其他配置项如有需要请参考config中的名称修改
+## updates:
+>2022.10.25 编写推理/训练详细文档，修改整合部分代码，增加对ogg格式音频的支持(无需与wav区分，直接使用即可)\
+2022.10.24 支持对自定义数据集的训练，并精简代码\
+2022.10.22 完成对opencpop数据集的训练并创建仓库
+
 ## 推理：
 
 >查看./inference.ipynb
 
 
 ## 预处理:
-
->export PYTHONPATH=.\
+```
+export PYTHONPATH=.\
 CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
-
+```
 ## 训练:
-
->CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [your project name] --reset 
-
+```
+CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [your project name] --reset 
+```
+详细训练过程和各种参数介绍请查看[推理与训练说明](./doc/train_and_inference.markdown)
 ### 已训练模型
->checkpoints trained on opencpop dataset(and others in future) can be found here(QQ channel)\
-please scan the QRcode with QQ:
+>目前已经以opencpop数据集和猫雷直播数据集进行过训练，对应ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
+使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
 <img src="./ckpt.png" width=256/>
 
 ## Acknowledgements
