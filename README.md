@@ -12,7 +12,7 @@ Singing Voice Conversion via diffusion model
 
 ## 预处理:
 ```
-export PYTHONPATH=.\
+export PYTHONPATH=.
 CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
 ## 训练:
