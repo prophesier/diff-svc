@@ -131,6 +131,12 @@ python preprocessing/binarize.py --config training/config.yaml
 export PYTHONPATH=.
 CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
+>注意：如果此条命令报找不到utils的错误，请在如colab笔记本的环境中以如下方式设置:
+```
+import os
+os.environ['PYTHONPATH']='.'
+!CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
+```
 ### 2.3 训练
 #windows
 ```
