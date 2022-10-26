@@ -61,6 +61,7 @@ gen_tgt_spk_id: -1
 hidden_size: 256
 hop_size: 128
 hubert_path: checkpoints/hubert/hubert.onnx
+hubert_gpu: True
 infer: false
 keep_bins: 80
 lambda_commit: 0.25

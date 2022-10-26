@@ -58,7 +58,7 @@ accelerate = 50
 _ = set_hparams(config=f'checkpoints/{project_name}/config.yaml', exp_name=project_name, infer=True, reset=True,
                 hparams_str='',
                 print_hparams=False)
-
+hparams['hubert_gpu']=False
 mel_bins = hparams['audio_num_mel_bins']
 model = GaussianDiffusion(
     phone_encoder=Hubertencoder(hparams['hubert_path']),

@@ -26,6 +26,10 @@ exp_name='这个项目的名称'
 
 modelpath='ckpt文件的全路径'
 如'./checkpoints/nyaru/model_ckpt_steps_112000.ckpt'
+
+hparams['hubert_gpu']=False
+推理时是否使用gpu推理hubert(模型中的一个模块)，不影响模型的其他部分
+如果打开，1分钟左右的音频这个模块将单独占用约5G+显存，显存较小不建议打开，已知1060系显卡会报错，请关闭
 ```
 ### 可调节参数：
 ```
@@ -90,6 +94,9 @@ test_prefixes:
 
 hubert_path: checkpoints/hubert/hubert.onnx
 hubert模型的存放地址，确保这个路径是对的，一般解压checkpoints包之后就是这个路径不需要改
+hubert_gpu:True
+是否在预处理时使用gpu运行hubert(模型的一个模块，显存占用较大)，如显存不够大可关闭。
+模型训练完推理是hubert是否用gpu可单独控制，不在本地预处理这里写true也没关系。
 
 lr: 0.0008
 #初始的学习率:这个数字对应于88的batchsize，如果batchsize更小，可以调低这个数值一些
