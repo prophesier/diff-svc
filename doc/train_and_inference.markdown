@@ -59,7 +59,12 @@ wav_gen='yyy.wav'#输出音频的路径
 ```
 
 ## 2.数据预处理与训练
-### 2.1
+### 2.1 准备数据
+>目前支持wav格式和ogg格式的音频数据，采样率最好高于24kHz，程序会自动处理采样率和声道问题。采样率不可低于16kHz（一般不会的）\
+音频需要切片为5-15s为宜的短音频，长度没有具体要求，但不宜过长过短。音频需要为纯目标人干声，不可以有背景音乐和其他人声音，最好也不要有过重的混响等。若经过去伴奏等处理，请尽量保证处理后的音频质量。\
+目前仅支持单人训练，总时长尽量保证在5h或以上，不需要额外任何标注，将音频文件放在下述raw_data_dir下即可，这个目录下的结构可以自由定义，程序会自主找到所需文件。
+
+### 2.2 修改超参数配置
 >首先请备份一份config.yaml，然后修改它：\
 可能会用到的参数如下(以工程名为nyaru为例):
 ```
@@ -92,6 +97,8 @@ lr: 0.0008
 decay_steps: 20000
 每20000步学习率衰减为原来的一半，如果batchsize比较小，请调大这个数值
 
+#对于30-40左右的batchsize，推荐lr=0.0004，decay_steps=40000
+
 max_frames: 42000
 max_input_tokens: 6000
 max_sentences: 88
@@ -118,7 +125,7 @@ work_dir: checkpoints/nyaru
 ```
 >其他的参数如果你不知道它是做什么的，请不要修改
 
-### 2.2 数据预处理
+### 2.3 数据预处理
 在diff-svc的目录下执行以下命令：\
 #windows
 ```
@@ -131,13 +138,8 @@ python preprocessing/binarize.py --config training/config.yaml
 export PYTHONPATH=.
 CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
->注意：如果此条命令报找不到utils的错误，请在如colab笔记本的环境中以如下方式设置:
-```
-import os
-os.environ['PYTHONPATH']='.'
-!CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
-```
-### 2.3 训练
+
+### 2.4 训练
 #windows
 ```
 set CUDA_VISIBLE_DEVICES=0 
@@ -148,6 +150,30 @@ python run.py --config training/train.yaml --exp_name nyaru --reset
 CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name nyaru --reset 
 ```
 >需要将exp_name改为你的工程名，并修改config路径，请确保和预处理使用的是同一个config文件\
-*重要* ：若不在本地训练，训练完成后，除了需要下载对应的ckpt文件，也需要将此config下载下来，作为推理时使用的config
+*重要* ：训练完成后，若之前不是在本地数据预处理，除了需要下载对应的ckpt文件，也需要将config文件下载下来，作为推理时使用的config，不可以使用本地之前上传上去那份。因为预处理时会向config文件中写入内容。推理时要保持使用的config和预处理使用的config是同一份。
+
+
+### 2.5 可能出现的问题：
+>2.5.1 'Upsample' object has no attribute 'recompute_scale_factor'\
+此问题发现于cuda11.3对应的torch中，若出现此问题,请通过合适的方法(如ide自动跳转等)找到你的python依赖包中的torch.nn.modules.upsampling.py文件，修改其153-154行
+```
+return F.interpolate(input, self.size, self.scale_factor, self.mode, self.align_corners,recompute_scale_factor=self.recompute_scale_factor)
+```
+>改为
+```
+return F.interpolate(input, self.size, self.scale_factor, self.mode, self.align_corners)
+# recompute_scale_factor=self.recompute_scale_factor)
+```
+>2.5.2 no module named 'utils'，
+请在你的运行环境(如colab笔记本)中以如下方式设置:
+```
+import os
+os.environ['PYTHONPATH']='.'
+!CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
+```
+注意一定要在项目文件夹的根目录中执行
+>2.5.3 预处理数据过慢\
+检查是否在配置中开启了use_crepe，将其关闭可显著提升速度。\
+检查onnxruntime使用的是否为gpu版本，与cuda是否匹配。
 
 如有其他问题，请扫描github仓库界面下方的二维码询问。
