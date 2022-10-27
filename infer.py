@@ -58,7 +58,7 @@ accelerate = 50
 _ = set_hparams(config=f'checkpoints/{project_name}/config.yaml', exp_name=project_name, infer=True, reset=True,
                 hparams_str='',
                 print_hparams=False)
-hparams['hubert_gpu']=False
+
 mel_bins = hparams['audio_num_mel_bins']
 model = GaussianDiffusion(
     phone_encoder=Hubertencoder(hparams['hubert_path']),
@@ -70,7 +70,7 @@ model = GaussianDiffusion(
 )
 
 dev = "cuda:0" if torch.cuda.is_available() else "cpu"
-load_ckpt(model, model_path, strict=True)
+utils.load_ckpt(model,model_path,'model',force=True, strict=True)
 model.to(dev)
 pe = PitchExtractor().to(dev)
 utils.load_ckpt(pe, hparams['pe_ckpt'], 'model', strict=True)

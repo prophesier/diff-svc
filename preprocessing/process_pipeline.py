@@ -59,7 +59,7 @@ class File2Batch:
         all_temp_dict = {}
         for utterance_label in utterance_labels:
             #song_info = utterance_label.split('|')
-            item_name =utterance_label#raw_item_name = song_info[0]
+            item_name =str(utterance_label)#raw_item_name = song_info[0]
             # print(item_name)
             temp_dict = {}
             temp_dict['wav_fn'] =str(utterance_label)#f'{raw_data_dir}/wavs/{item_name}.wav'

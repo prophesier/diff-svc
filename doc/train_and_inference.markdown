@@ -1,17 +1,15 @@
 # Diff-SVC(train/inference by yourself)
 ## 0.环境配置
->注意:requirements中与pytorch有关的项目(torch/torchvision/pytorch-lightning)以及onnxruntime已事先删除
+>注意:requirements文件已更新，目前分为3个版本，可自行选择使用。\
+1. requirements.txt 是此仓库测试的原始完整环境，Torch1.12.1+cu113,可选择直接pip 或删除其中与pytorch有关的项目(torch/torchvision)后再pip，并使用自己的torch环境
 ```
 pip install -r requirements.txt
 ```
->之后后请根据本地cuda自行选择对应的torch版本安装\
-此项目依赖pytorch-lightning, 请记得安装\
-onnxruntime有gpu版本onnxruntime-gpu, torch和cuda版本不太低可以直接
+>2. requirements_short.txt 是上述环境的手动整理版，不含torch本体，也可以直接
 ```
-pip install onnxruntime-gpu
+pip install -r requirements_short.txt
 ```
->其他版本请查询onnxruntime官网上的对应关系\
-注意:requirements.txt中存在一些冗余依赖，暂时尚未剔除，但并没有体积十分大的，如果在意，可以参考根目录下@三千整理的一份依赖列表requirements.png，十分感谢
+>3. 根目录下有一份@三千整理的依赖列表requirements.png，是在某品牌云服务器上跑通的，也可以参考，十分感谢
 
 ## 1.推理
 >使用根目录下的inference.ipynb进行推理或使用@小狼整理的infer.py\
@@ -42,7 +40,7 @@ thre=0.05
 #crepe的噪声过滤阈值，源音频干净可适当调大，噪音多就保持这个数值或者调小，前面改成False后这个参数不起作用
 
 hparams['pndm_speedup']=10
-#推理加速算法倍数，默认是1000步，这里填成10就是只使用100步合成，是一个中规中矩的数值，这个数值可以高到50倍(20步合成)没有明显质量损失，再大可能会有可观的质量损失
+#推理加速算法倍数，默认是1000步，这里填成10就是只使用100步合成，是一个中规中矩的数值，这个数值可以高到50倍(20步合成)没有明显质量损失，再大可能会有可观的质量损失,注意如果下方开启了use_gt_mel, 应保证这个数值小于add_noise_step，并尽量让其能够整除
 
 key=0
 #变调参数，默认为0(不是1!!)，将源音频的音高升高key个半音后合成，如男声转女生，可填入8或者12等(12就是升高一整个8度)
@@ -92,11 +90,10 @@ test_prefixes:
 - speaker1024
 重要：测试集*不可以*为空，为了不产生意外影响，建议尽量不要手动选择测试集
 
-hubert_path: checkpoints/hubert/hubert.onnx
-hubert模型的存放地址，确保这个路径是对的，一般解压checkpoints包之后就是这个路径不需要改
+hubert_path: checkpoints/hubert/hubert.pt
+hubert模型的存放地址，确保这个路径是对的，一般解压checkpoints包之后就是这个路径不需要改,现已使用torch版本推理
 hubert_gpu:True
-是否在预处理时使用gpu运行hubert(模型的一个模块，显存占用较大)，如显存不够大可关闭。
-模型训练完推理是hubert是否用gpu可单独控制，不在本地预处理这里写true也没关系。
+是否在预处理时使用gpu运行hubert(模型的一个模块)，关闭后使用cpu，但耗时会显著增加。另外模型训练完推理时hubert是否用gpu是在inference中单独控制的，不受此处影响。目前hubert改为torch版后已经可以做到在1060 6G显存gpu上进行预处理，与直接推理1分钟内的音频不超出显存限制，一般不需要关了。
 
 lr: 0.0008
 #初始的学习率:这个数字对应于88的batchsize，如果batchsize更小，可以调低这个数值一些
@@ -150,7 +147,7 @@ CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config
 #windows
 ```
 set CUDA_VISIBLE_DEVICES=0 
-python run.py --config training/train.yaml --exp_name nyaru --reset  
+python run.py --config training/config.yaml --exp_name nyaru --reset  
 ```
 #linux
 ```
@@ -162,7 +159,7 @@ CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name ny
 
 ### 2.5 可能出现的问题：
 >2.5.1 'Upsample' object has no attribute 'recompute_scale_factor'\
-此问题发现于cuda11.3对应的torch中，若出现此问题,请通过合适的方法(如ide自动跳转等)找到你的python依赖包中的torch.nn.modules.upsampling.py文件，修改其153-154行
+此问题发现于cuda11.3对应的torch中，若出现此问题,请通过合适的方法(如ide自动跳转等)找到你的python依赖包中的torch.nn.modules.upsampling.py文件(如conda环境中为conda目录\envs\环境目录\Lib\site-packages\torch\nn\modules\upsampling.py)，修改其153-154行
 ```
 return F.interpolate(input, self.size, self.scale_factor, self.mode, self.align_corners,recompute_scale_factor=self.recompute_scale_factor)
 ```
@@ -171,7 +168,7 @@ return F.interpolate(input, self.size, self.scale_factor, self.mode, self.align_
 return F.interpolate(input, self.size, self.scale_factor, self.mode, self.align_corners)
 # recompute_scale_factor=self.recompute_scale_factor)
 ```
->2.5.2 no module named 'utils'，
+>2.5.2 no module named 'utils'\
 请在你的运行环境(如colab笔记本)中以如下方式设置:
 ```
 import os
@@ -179,8 +176,14 @@ os.environ['PYTHONPATH']='.'
 !CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
 注意一定要在项目文件夹的根目录中执行
->2.5.3 预处理数据过慢\
+>2.5.3 xxxxx sndfile xxxxx\
+可能会在linux环境中遇到的错误,请执行以下指令
+```
+apt-get install libsndfile1 -y
+```
+
+>2.5.4 预处理数据过慢\
 检查是否在配置中开启了use_crepe，将其关闭可显著提升速度。\
-检查onnxruntime使用的是否为gpu版本，与cuda是否匹配。
+检查配置中hubert_gpu是否开启。
 
 如有其他问题，请扫描github仓库界面下方的二维码询问。
