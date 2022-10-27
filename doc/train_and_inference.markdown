@@ -142,7 +142,8 @@ python preprocessing/binarize.py --config training/config.yaml
 export PYTHONPATH=.
 CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
-
+对于预处理，@小狼准备了一份可以分段处理hubert和其他特征的代码，如果正常处理显存不足，可以先python ./network/hubert/hubert_model.py
+然后再运行正常的指令，能够识别提前处理好的hubert特征
 ### 2.4 训练
 #windows
 ```

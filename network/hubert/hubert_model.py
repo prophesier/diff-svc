@@ -9,6 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as t_func
 from torch.nn.modules.utils import consume_prefix_in_state_dict_if_present
 
+from utils import hparams
+
 
 class Hubert(nn.Module):
     def __init__(self, num_label_embeddings: int = 100, mask: bool = True):
@@ -261,15 +263,16 @@ def get_end_file(dir_path, end):
 
 
 if __name__ == '__main__':
+    from pathlib import Path
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hubert的模型路径
-    hbt_model = hubert_soft("hubert.pt")
+    hbt_model = hubert_soft(list(Path(hparams['hubert_path']).home().rglob('*.pt'))[0])
     # 这个不用改，自动在根目录下所有wav的同文件夹生成其对应的npy
-    file_lists = get_end_file("../../", "wav")
+    file_lists = list(Path(hparams['raw_data_dir']).rglob('*.wav'))
     nums = len(file_lists)
     count = 0
     for wav_path in file_lists:
-        npy_path = wav_path.replace(".wav", ".npy")
+        npy_path = wav_path.with_suffix(".npy")
         npy_content = get_units(hbt_model, wav_path).cpu().numpy()[0]
         np.save(npy_path, npy_content)
         count += 1
