@@ -9,7 +9,7 @@ from utils.hparams import hparams
 
 class Hubertencoder():
     def __init__(self, ptpath='checkpoints/hubert/hubert_soft.pt'):
-        ptpath=list(Path(ptpath).home().rglob('*.pt'))[0]
+        ptpath=list(Path(ptpath).parent.rglob('*.pt'))[0]
         if 'hubert_gpu' in hparams.keys():
             self.use_gpu = hparams['hubert_gpu']
         else:

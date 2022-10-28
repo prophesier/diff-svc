@@ -177,7 +177,7 @@ os.environ['PYTHONPATH']='.'
 !CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
 注意一定要在项目文件夹的根目录中执行
->2.5.3 xxxxx sndfile xxxxx\
+>2.5.3 cannot load library 'libsndfile.so'\
 可能会在linux环境中遇到的错误,请执行以下指令
 ```
 apt-get install libsndfile1 -y
