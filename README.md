@@ -1,7 +1,8 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 ## updates:
->2022.10.28 将hubert的onnx推理迁移为torch推理，并整理推理逻辑。\
+>2022.10.29 整理推理部分，添加长音频自动切片功能
+2022.10.28 将hubert的onnx推理迁移为torch推理，并整理推理逻辑。\
 <font color=#FFA500>如原先下载过onnx的hubert模型需重新下载并替换为pt模型</font>，config不需要改，目前可以实现1060 6G显存的直接GPU推理与预处理，详情请查看文档。\
 2022.10.27 更新依赖文件，去除冗余依赖。\
 2022.10.27 修复了一个严重错误，曾导致在gpu服务器上hubert仍使用cpu推理，速度减慢3-5倍，影响预处理与推理，不影响训练\
