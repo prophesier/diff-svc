@@ -61,8 +61,8 @@ add_noise_step=500
 
 wav_gen='yyy.wav'#输出音频的路径，默认在项目根目录中
 ```
-如果使用infer.py，修改方式类似，需要修改__name__=='__main__'中的部分，然后在根目录中执行
-python infer.py
+如果使用infer.py，修改方式类似，需要修改__name__=='__main__'中的部分，然后在根目录中执行\
+python infer.py\
 这种方式需要将原音频放入raw中并在results中查找结果
 ## 2.数据预处理与训练
 ### 2.1 准备数据
