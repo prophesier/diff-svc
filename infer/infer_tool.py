@@ -81,7 +81,7 @@ def mkdir(paths: list):
 
 
 class Svc:
-    def __init__(self, project_name, model_path):
+    def __init__(self, project_name,config_name,hubert_gpu, model_path):
         self.DIFF_DECODERS = {
             'wavenet': lambda hp: DiffNet(hp['audio_num_mel_bins']),
             'fft': lambda hp: FFT(
@@ -91,7 +91,7 @@ class Svc:
         self.model_path = model_path
         self.dev = torch.device("cuda")
 
-        self._ = set_hparams(config=f'checkpoints/{project_name}/config.yaml', exp_name=project_name, infer=True,
+        self._ = set_hparams(config=config_name, exp_name=project_name, infer=True,
                              reset=True,
                              hparams_str='',
                              print_hparams=False)
@@ -107,6 +107,7 @@ class Svc:
         )
         self.load_ckpt()
         self.model.cuda()
+        hparams['hubert_gpu']=hubert_gpu
         self.hubert = Hubertencoder(hparams['hubert_path'])
         self.pe = PitchExtractor().cuda()
         utils.load_ckpt(self.pe, hparams['pe_ckpt'], 'model', strict=True)
