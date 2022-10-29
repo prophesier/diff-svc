@@ -46,7 +46,7 @@ def cut_wav(raw_audio_path, out_audio_name, input_wav_path, cut_time):
     raw_audio, raw_sr = torchaudio.load(raw_audio_path)
     if raw_audio.shape[-1] / raw_sr > cut_time:
         subprocess.Popen(
-            f"python ./infer/slicer.py {raw_audio_path} --out_name {out_audio_name} --out {input_wav_path}  --db_thresh -30",
+            f"python ./infer_tools/slicer.py {raw_audio_path} --out_name {out_audio_name} --out {input_wav_path}  --db_thresh -30",
             shell=True).wait()
     else:
         shutil.copy(raw_audio_path, f"{input_wav_path}/{out_audio_name}-00.wav")
@@ -108,6 +108,7 @@ class Svc:
         self.load_ckpt()
         self.model.cuda()
         hparams['hubert_gpu']=hubert_gpu
+        hparams['use_uv']=True
         self.hubert = Hubertencoder(hparams['hubert_path'])
         self.pe = PitchExtractor().cuda()
         utils.load_ckpt(self.pe, hparams['pe_ckpt'], 'model', strict=True)
@@ -135,6 +136,7 @@ class Svc:
         batch['mel2ph_pred'] = outputs['mel2ph']
         batch['f0_gt'] = denorm_f0(batch['f0'], batch['uv'], hparams)
         if use_pe:
+            hparams['use_uv']=True
             batch['f0_pred'] = self.pe(outputs['mel_out'])['f0_denorm_pred'].detach()
         else:
             batch['f0_pred'] = outputs.get('f0_denorm')
@@ -181,7 +183,7 @@ class Svc:
         '''
 
         binarization_args = hparams['binarization_args']
-
+        @timeit
         def get_pitch(wav, mel):
             # get ground truth f0 by self.get_pitch_algorithm
             if use_crepe:

@@ -12,26 +12,28 @@ pip install -r requirements_short.txt
 >3. 根目录下有一份@三千整理的依赖列表requirements.png，是在某品牌云服务器上跑通的，也可以参考，十分感谢
 
 ## 1.推理
->使用根目录下的inference.ipynb进行推理或使用@小狼整理的infer.py\
+>使用根目录下的inference.ipynb进行推理或使用经过po主适配的@小狼的infer.py\
 在第一个block中修改如下参数：
 ```
-config='checkpoints压缩包中config.yaml的位置'
+config_path='checkpoints压缩包中config.yaml的位置'
 如'./checkpoints/nyaru/config.yaml'
 config和checkpoints是一一对应的，请不要使用其他config
 
-exp_name='这个项目的名称'
+project_name='这个项目的名称'
 如'nyaru'
 
-modelpath='ckpt文件的全路径'
+model_path='ckpt文件的全路径'
 如'./checkpoints/nyaru/model_ckpt_steps_112000.ckpt'
 
-hparams['hubert_gpu']=False
+hubert_gpu=True
 推理时是否使用gpu推理hubert(模型中的一个模块)，不影响模型的其他部分
-如果打开，1分钟左右的音频这个模块将单独占用约5G+显存，显存较小不建议打开，已知1060系显卡会报错，请关闭
+目前版本已大幅减小hubert的gpu占用，在1060 6G显存下可完整推理，不需要关闭了。
+另外现已支持长音频自动切片功能(ipynb和infer.py均可)，超过30s的音频将自动在静音处切片处理，感谢@小狼的代码
+
 ```
 ### 可调节参数：
 ```
-wav_fn='xxx.wav'#传入音频的路径
+wav_fn='xxx.wav'#传入音频的路径，默认在项目根目录中
 
 use_crepe=True 
 #crepe是一个F0算法，效果好但速度慢，改成False会使用效果稍逊于crepe但较快的parselmouth算法
@@ -39,7 +41,7 @@ use_crepe=True
 thre=0.05
 #crepe的噪声过滤阈值，源音频干净可适当调大，噪音多就保持这个数值或者调小，前面改成False后这个参数不起作用
 
-hparams['pndm_speedup']=10
+pndm_speedup=20
 #推理加速算法倍数，默认是1000步，这里填成10就是只使用100步合成，是一个中规中矩的数值，这个数值可以高到50倍(20步合成)没有明显质量损失，再大可能会有可观的质量损失,注意如果下方开启了use_gt_mel, 应保证这个数值小于add_noise_step，并尽量让其能够整除
 
 key=0
@@ -57,9 +59,11 @@ use_gt_mel=False
 add_noise_step=500
 #与上个参数有关，控制两种声音的比例，填入1是完全的源声线，填入1000是完全的目标声线，能听出来是两者均等混合的数值大约在300附近(并不是线性的，另外这个参数如果调的很小，可以把pndm加速倍率调低，增加合成质量)
 
-wav_gen='yyy.wav'#输出音频的路径
+wav_gen='yyy.wav'#输出音频的路径，默认在项目根目录中
 ```
-
+如果使用infer.py，修改方式类似，需要修改__name__=='__main__'中的部分，然后在根目录中执行
+python infer.py
+这种方式需要将原音频放入raw中并在results中查找结果
 ## 2.数据预处理与训练
 ### 2.1 准备数据
 >目前支持wav格式和ogg格式的音频数据，采样率最好高于24kHz，程序会自动处理采样率和声道问题。采样率不可低于16kHz（一般不会的）\
