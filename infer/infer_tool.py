@@ -117,8 +117,8 @@ class Svc:
         utils.load_ckpt(self.model, self.model_path, model_name, force, strict)
 
     @timeit
-    def infer(self, in_path, key, acc, use_pe=True, **kwargs):
-        batch = self.pre(in_path, acc)
+    def infer(self, in_path, key, acc, use_pe=True, use_crepe=True, thre=0.05, **kwargs):
+        batch = self.pre(in_path, acc, use_crepe, thre)
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
         hubert = batch['hubert']
         ref_mels = batch["mels"]
@@ -134,7 +134,6 @@ class Svc:
         batch['mel2ph_pred'] = outputs['mel2ph']
         batch['f0_gt'] = denorm_f0(batch['f0'], batch['uv'], hparams)
         if use_pe:
-
             batch['f0_pred'] = self.pe(outputs['mel_out'])['f0_denorm_pred'].detach()
         else:
             batch['f0_pred'] = outputs.get('f0_denorm')
@@ -228,8 +227,8 @@ class Svc:
                 get_align(mel, hubert_encoded)
         return processed_input
 
-    def pre(self, in_path, accelerate):
-        temp_dict = self.temporary_dict2processed_input(*file2temporary_dict(in_path), use_crepe=True, thre=0.05)
+    def pre(self, in_path, accelerate, use_crepe=True, thre=0.05):
+        temp_dict = self.temporary_dict2processed_input(*file2temporary_dict(in_path), use_crepe, thre)
         hparams['pndm_speedup'] = accelerate
         batch = processed_input2batch([getitem(temp_dict)])
         return batch

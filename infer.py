@@ -47,8 +47,8 @@ for f_name, tran in zip(file_names, trans):
         raw_path = f"{input_wav_path}/{file_name}"
         out_path = f"{out_wav_path}/{file_name}"
 
-        f0_gt, f0_pred, audio = svc_model.infer(raw_path, key=tran, acc=accelerate, use_pe=True, use_gt_mel=False,
-                                                add_noise_step=500)
+        f0_tst, f0_pred, audio = svc_model.infer(raw_path, key=tran, acc=accelerate, use_pe=True, use_crepe=True,
+                                                 thre=0.05, use_gt_mel=False, add_noise_step=500)
         soundfile.write(out_path, audio, 24000, 'PCM_16')
 
         count += 1
