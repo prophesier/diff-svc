@@ -4,7 +4,9 @@ import shutil
 import subprocess
 import time
 
+import librosa
 import numpy as np
+import soundfile
 import torch
 import torchaudio
 
@@ -33,6 +35,11 @@ def timeit(func):
         return res
 
     return run
+
+
+def format_wav(audio_path):
+    raw_audio, raw_sample_rate = librosa.load(audio_path, mono=True)
+    soundfile.write(audio_path[:-4] + ".wav", raw_audio, raw_sample_rate)
 
 
 def cut_wav(raw_audio_path, out_audio_name, input_wav_path, cut_time):
@@ -140,18 +147,33 @@ class Svc:
                 prediction[k] = v.cpu().numpy()
 
         # remove paddings
+        mel_gt = prediction["mels"]
+        mel_gt_mask = np.abs(mel_gt).sum(-1) > 0
+        mel_gt = mel_gt[mel_gt_mask]
+        mel2ph_gt = prediction.get("mel2ph")
+        mel2ph_gt = mel2ph_gt[mel_gt_mask] if mel2ph_gt is not None else None
         mel_pred = prediction["outputs"]
         mel_pred_mask = np.abs(mel_pred).sum(-1) > 0
         mel_pred = mel_pred[mel_pred_mask]
+        mel_gt = np.clip(mel_gt, hparams['mel_vmin'], hparams['mel_vmax'])
         mel_pred = np.clip(mel_pred, hparams['mel_vmin'], hparams['mel_vmax'])
 
+        mel2ph_pred = prediction.get("mel2ph_pred")
+        if mel2ph_pred is not None:
+            if len(mel2ph_pred) > len(mel_pred_mask):
+                mel2ph_pred = mel2ph_pred[:len(mel_pred_mask)]
+            mel2ph_pred = mel2ph_pred[mel_pred_mask]
+
+        f0_gt = prediction.get("f0_gt")
         f0_pred = prediction.get("f0_pred")
+        if f0_pred is not None:
+            f0_gt = f0_gt[mel_gt_mask]
         if len(f0_pred) > len(mel_pred_mask):
             f0_pred = f0_pred[:len(mel_pred_mask)]
         f0_pred = f0_pred[mel_pred_mask]
         torch.cuda.is_available() and torch.cuda.empty_cache()
         wav_pred = self.vocoder.spec2wav(mel_pred, f0=f0_pred)
-        return wav_pred
+        return f0_gt, f0_pred, wav_pred
 
     def temporary_dict2processed_input(self, item_name, temp_dict, use_crepe=True, thre=0.05):
         '''

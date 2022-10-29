@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import soundfile
 
@@ -13,8 +14,8 @@ project_name = "yilanqiu"
 model_path = f'./checkpoints/{project_name}/model_ckpt_steps_44000.ckpt'
 
 # 支持多个wav文件，放在raw文件夹下
-clean_names = ["十年"]
-trans = [-6]  # 音高调整，支持正负（半音）
+file_names = ["mxj_61674.ogg"]
+trans = [-9]  # 音高调整，支持正负（半音）
 # 加速倍数
 accelerate = 50
 
@@ -26,16 +27,18 @@ out_wav_path = "./infer/wav_temp/output"
 cut_time = 30
 
 svc_model = Svc(project_name, model_path)
-infer_tool.fill_a_to_b(trans, clean_names)
+infer_tool.fill_a_to_b(trans, file_names)
 infer_tool.mkdir(["./infer/wav_temp", input_wav_path, out_wav_path])
 
 # 清除缓存文件
 infer_tool.del_temp_wav(input_wav_path)
-for clean_name, tran in zip(clean_names, trans):
-    raw_audio_path = f"./raw/{clean_name}.wav"
+for f_name, tran in zip(file_names, trans):
+    raw_audio_path = f"./raw/{f_name}"
+    infer_tool.format_wav(raw_audio_path)
+    clean_name = f_name[:-4]
     infer_tool.del_temp_wav("./infer/wav_temp")
     out_audio_name = clean_name
-    infer_tool.cut_wav(raw_audio_path, out_audio_name, input_wav_path, cut_time)
+    infer_tool.cut_wav(Path(raw_audio_path).with_suffix('.wav'), out_audio_name, input_wav_path, cut_time)
 
     count = 0
     file_list = infer_tool.get_end_file(input_wav_path, "wav")
@@ -44,7 +47,8 @@ for clean_name, tran in zip(clean_names, trans):
         raw_path = f"{input_wav_path}/{file_name}"
         out_path = f"{out_wav_path}/{file_name}"
 
-        audio = svc_model.infer(raw_path, key=tran, acc=accelerate, use_pe=True, use_gt_mel=False, add_noise_step=500)
+        f0_gt, f0_pred, audio = svc_model.infer(raw_path, key=tran, acc=accelerate, use_pe=True, use_gt_mel=False,
+                                                add_noise_step=500)
         soundfile.write(out_path, audio, 24000, 'PCM_16')
 
         count += 1
