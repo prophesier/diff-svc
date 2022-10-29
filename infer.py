@@ -10,15 +10,15 @@ from infer.infer_tool import Svc
 logging.getLogger('numba').setLevel(logging.WARNING)
 
 # 工程文件夹名，训练时用的那个
-project_name = "yilanqiu"
-model_path = f'./checkpoints/{project_name}/model_ckpt_steps_44000.ckpt'
-
+project_name = "nyaru"
+model_path = f'./checkpoints/{project_name}/model_ckpt_steps_112000.ckpt'
+config_path = f'./checkpoints/{project_name}/config.yaml'
 # 支持多个wav文件，放在raw文件夹下
-file_names = ["mxj_61674.ogg"]
-trans = [-9]  # 音高调整，支持正负（半音）
+file_names = ["群青.wav"]
+trans = [0]  # 音高调整，支持正负（半音）
 # 加速倍数
-accelerate = 50
-
+accelerate = 20
+hubert_gpu=True
 # 下面不动
 infer_tool.mkdir(["./raw", "./results"])
 
@@ -26,7 +26,7 @@ input_wav_path = "./infer/wav_temp/input"
 out_wav_path = "./infer/wav_temp/output"
 cut_time = 30
 
-svc_model = Svc(project_name, model_path)
+svc_model = Svc(project_name,config_path,hubert_gpu, model_path)
 infer_tool.fill_a_to_b(trans, file_names)
 infer_tool.mkdir(["./infer/wav_temp", input_wav_path, out_wav_path])
 
@@ -54,4 +54,6 @@ for f_name, tran in zip(file_names, trans):
         count += 1
     merge.run(out_audio_name, f"_{tran}key_{project_name}")
     # 清除缓存文件
+    infer_tool.del_temp_wav(input_wav_path)
     infer_tool.del_temp_wav(out_wav_path)
+   
