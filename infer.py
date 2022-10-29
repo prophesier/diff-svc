@@ -1,68 +1,53 @@
-import librosa
-import soundfile as sf
-import torch
+import logging
 
-import utils
-from infer_tool import infer_tool
-from modules.fastspeech.pe import PitchExtractor
-from network.diff.candidate_decoder import FFT
-from network.diff.diffusion import GaussianDiffusion
-from network.diff.net import DiffNet
-from preprocessing.hubertinfer import Hubertencoder
-from utils.hparams import hparams, set_hparams
-from utils.pitch_utils import denorm_f0
-from network.vocoders.base_vocoder import get_vocoder_cls, BaseVocoder
+import soundfile
 
+from infer import infer_tool
+from infer import merge
+from infer.infer_tool import Svc
 
-DIFF_DECODERS = {
-    'wavenet': lambda hp: DiffNet(hp['audio_num_mel_bins']),
-    'fft': lambda hp: FFT(
-        hp['hidden_size'], hp['dec_layers'], hp['dec_ffn_kernel_size'], hp['num_heads']),
-}
+logging.getLogger('numba').setLevel(logging.WARNING)
 
 # 工程文件夹名，训练时用的那个
-project_name = "SVC"
-# 改一下steps就行
-model_path = f'./checkpoints/{project_name}/model_ckpt_steps_240000.ckpt'
+project_name = "yilanqiu"
+model_path = f'./checkpoints/{project_name}/model_ckpt_steps_44000.ckpt'
 
-# 输入输出文件名
-wav_fn = '祈.wav'
-wav_gen = f'out_{wav_fn}'
-
+# 支持多个wav文件，放在raw文件夹下
+clean_names = ["十年"]
+trans = [-6]  # 音高调整，支持正负（半音）
 # 加速倍数
 accelerate = 50
 
 # 下面不动
-_ = set_hparams(config=f'checkpoints/{project_name}/config.yaml', exp_name=project_name, infer=True, reset=True,
-                hparams_str='',
-                print_hparams=False)
+infer_tool.mkdir(["./raw", "./results"])
 
-mel_bins = hparams['audio_num_mel_bins']
-encoder=Hubertencoder(hparams['hubert_path'])
-model = GaussianDiffusion(
-    phone_encoder=encoder,
-    out_dims=mel_bins, denoise_fn=DIFF_DECODERS[hparams['diff_decoder_type']](hparams),
-    timesteps=hparams['timesteps'],
-    K_step=hparams['K_step'],
-    loss_type=hparams['diff_loss_type'],
-    spec_min=hparams['spec_min'], spec_max=hparams['spec_max'],
-)
+input_wav_path = "./infer/wav_temp/input"
+out_wav_path = "./infer/wav_temp/output"
+cut_time = 30
 
-dev = "cuda:0" if torch.cuda.is_available() else "cpu"
-utils.load_ckpt(model,model_path,'model',force=True, strict=True)
-model.to(dev)
-pe = PitchExtractor().to(dev)
-utils.load_ckpt(pe, hparams['pe_ckpt'], 'model', strict=True)
-pe.eval()
+svc_model = Svc(project_name, model_path)
+infer_tool.fill_a_to_b(trans, clean_names)
+infer_tool.mkdir(["./infer/wav_temp", input_wav_path, out_wav_path])
 
-vocoder: BaseVocoder = get_vocoder_cls(hparams)()
-inf=infer_tool(encoder,model,pe,vocoder)
-print('model loaded')
+# 清除缓存文件
+infer_tool.del_temp_wav(input_wav_path)
+for clean_name, tran in zip(clean_names, trans):
+    raw_audio_path = f"./raw/{clean_name}.wav"
+    infer_tool.del_temp_wav("./infer/wav_temp")
+    out_audio_name = clean_name
+    infer_tool.cut_wav(raw_audio_path, out_audio_name, input_wav_path, cut_time)
 
-demo_audio, sr = librosa.load(wav_fn, sr=None)
-temp_dict = tempdict=inf.make_dict(wav_fn,use_crepe=True,thre=0.05)
+    count = 0
+    file_list = infer_tool.get_end_file(input_wav_path, "wav")
+    for file_name in file_list:
+        file_name = file_name.split("/")[-1]
+        raw_path = f"{input_wav_path}/{file_name}"
+        out_path = f"{out_wav_path}/{file_name}"
 
-hparams['pndm_speedup'] = accelerate
-f0_tst,f0_pred,audio=inf.infer(tempdict,key=0,use_pe=True,use_gt_mel=False,add_noise_step=1000)
+        audio = svc_model.infer(raw_path, key=tran, acc=accelerate, use_pe=True, use_gt_mel=False, add_noise_step=500)
+        soundfile.write(out_path, audio, 24000, 'PCM_16')
 
-sf.write(wav_gen, audio, 24000, 'PCM_16')
+        count += 1
+    merge.run(out_audio_name, f"_{tran}key_{project_name}")
+    # 清除缓存文件
+    infer_tool.del_temp_wav(out_wav_path)
