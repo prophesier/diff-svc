@@ -2,6 +2,7 @@ import copy
 import os
 import random
 from typing import Optional, Tuple
+
 import librosa
 import numpy as np
 import torch
@@ -230,12 +231,7 @@ def hubert_soft(
     return hubert
 
 
-def get_units(hbt_soft, raw_wav_path,dev=torch.device('cuda')):
-    # source, sr = torchaudio.load(raw_wav_path)
-    # source = torchaudio.functional.resample(source, sr, 16000)
-    # if len(source.shape) == 2 and source.shape[1] >= 2:
-    #     source = torch.mean(source, dim=0).unsqueeze(0)
-    # source = source.unsqueeze(0).to(dev)
+def get_units(hbt_soft, raw_wav_path, dev=torch.device('cuda')):
     wav, sr = librosa.load(raw_wav_path, sr=None)
     assert (sr >= 16000)
     if len(wav.shape) > 1:
@@ -244,7 +240,7 @@ def get_units(hbt_soft, raw_wav_path,dev=torch.device('cuda')):
         wav16 = librosa.resample(wav, sr, 16000)
     else:
         wav16 = wav
-    dev = torch.device("cuda" if (dev==torch.device('cuda') and torch.cuda.is_available()) else "cpu")
+    dev = torch.device("cuda" if (dev == torch.device('cuda') and torch.cuda.is_available()) else "cpu")
     torch.cuda.is_available() and torch.cuda.empty_cache()
     with torch.inference_mode():
         units = hbt_soft.units(torch.FloatTensor(wav16.astype(float)).unsqueeze(0).unsqueeze(0).to(dev))
@@ -264,9 +260,10 @@ def get_end_file(dir_path, end):
 
 if __name__ == '__main__':
     from pathlib import Path
+
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hubert的模型路径
-    hbt_model = hubert_soft(list(Path(hparams['hubert_path']).home().rglob('*.pt'))[0])
+    hbt_model = hubert_soft(str(list(Path(hparams['hubert_path']).home().rglob('*.pt'))[0]))
     # 这个不用改，自动在根目录下所有wav的同文件夹生成其对应的npy
     file_lists = list(Path(hparams['raw_data_dir']).rglob('*.wav'))
     nums = len(file_lists)
@@ -274,6 +271,6 @@ if __name__ == '__main__':
     for wav_path in file_lists:
         npy_path = wav_path.with_suffix(".npy")
         npy_content = get_units(hbt_model, wav_path).cpu().numpy()[0]
-        np.save(npy_path, npy_content)
+        np.save(str(npy_path), npy_content)
         count += 1
         print(f"hubert process：{round(count * 100 / nums, 2)}%")

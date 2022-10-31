@@ -1,4 +1,3 @@
-import logging
 import os
 from pathlib import Path
 
@@ -12,7 +11,6 @@ from infer_tools.infer_tool import Svc
 
 def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise_step, project_name='', f_name=None,
              file_path=None, out_path=None):
-    infer_tool.del_temp_wav(input_wav_path)
     if file_path is None:
         raw_audio_path = f"./raw/{f_name}"
         clean_name = f_name[:-4]
@@ -26,7 +24,7 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
     f0_tst = []
     f0_pred = []
     audio = []
-    raw_path = "infer_temp.wav"
+    raw_path = "./infer_tools/infer_temp.wav"
     for data in audio_data:
         soundfile.write(raw_path, data, audio_sr, format="wav")
         _f0_tst, _f0_pred, _audio = svc_model.infer(raw_path, key=key, acc=acc, use_pe=use_pe, use_crepe=use_crepe,
@@ -44,22 +42,23 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
 
 
 if __name__ == '__main__':
-    logging.getLogger('numba').setLevel(logging.WARNING)
-    infer_tool.mkdir(["./raw", "./results"])
-    cut_time = 30
-
     # 工程文件夹名，训练时用的那个
     project_name = "yilanqiu"
     model_path = f'./checkpoints/{project_name}/model_ckpt_steps_138000.ckpt'
     config_path = f'./checkpoints/{project_name}/config.yaml'
-    # 支持多个wav文件，放在raw文件夹下
+
+    # 支持多个wav/ogg文件，放在raw文件夹下，带扩展名
     file_names = ["十年.wav"]
-    trans = [0]  # 音高调整，支持正负（半音）
+    trans = [0]  # 音高调整，支持正负（半音），数量与上一行对应，不足的自动按第一个移调参数补齐
     # 加速倍数
     accelerate = 20
     hubert_gpu = True
-    infer_tool.fill_a_to_b(trans, file_names)
+    cut_time = 30
+
     # 下面不动
+    infer_tool.mkdir(["./raw", "./results"])
+    infer_tool.fill_a_to_b(trans, file_names)
+
     model = Svc(project_name, config_path, hubert_gpu, model_path)
     for f_name, tran in zip(file_names, trans):
         run_clip(model, key=tran, acc=accelerate, use_crepe=True, thre=0.05, use_pe=True, use_gt_mel=False,
