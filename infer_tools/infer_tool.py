@@ -81,7 +81,7 @@ def mkdir(paths: list):
 
 
 class Svc:
-    def __init__(self, project_name,config_name,hubert_gpu, model_path):
+    def __init__(self, project_name, config_name, hubert_gpu, model_path):
         self.DIFF_DECODERS = {
             'wavenet': lambda hp: DiffNet(hp['audio_num_mel_bins']),
             'fft': lambda hp: FFT(
@@ -107,8 +107,8 @@ class Svc:
         )
         self.load_ckpt()
         self.model.cuda()
-        hparams['hubert_gpu']=hubert_gpu
-        hparams['use_uv']=True
+        hparams['hubert_gpu'] = hubert_gpu
+        hparams['use_uv'] = True
         self.hubert = Hubertencoder(hparams['hubert_path'])
         self.pe = PitchExtractor().cuda()
         utils.load_ckpt(self.pe, hparams['pe_ckpt'], 'model', strict=True)
@@ -136,7 +136,7 @@ class Svc:
         batch['mel2ph_pred'] = outputs['mel2ph']
         batch['f0_gt'] = denorm_f0(batch['f0'], batch['uv'], hparams)
         if use_pe:
-            hparams['use_uv']=True
+            hparams['use_uv'] = True
             batch['f0_pred'] = self.pe(outputs['mel_out'])['f0_denorm_pred'].detach()
         else:
             batch['f0_pred'] = outputs.get('f0_denorm')
@@ -183,6 +183,7 @@ class Svc:
         '''
 
         binarization_args = hparams['binarization_args']
+
         @timeit
         def get_pitch(wav, mel):
             # get ground truth f0 by self.get_pitch_algorithm
@@ -230,25 +231,15 @@ class Svc:
                 get_align(mel, hubert_encoded)
         return processed_input
 
-    def pre(self, in_path, accelerate, use_crepe=True, thre=0.05):
-        temp_dict = self.temporary_dict2processed_input(*file2temporary_dict(in_path), use_crepe, thre)
+    def pre(self, wav_fn, accelerate, use_crepe=True, thre=0.05):
+        song_info = wav_fn.split('/')
+        item_name = song_info[-1].split('.')[-2]
+        temp_dict = {'wav_fn': wav_fn, 'spk_id': self.project_name}
+
+        temp_dict = self.temporary_dict2processed_input(item_name, temp_dict, use_crepe, thre)
         hparams['pndm_speedup'] = accelerate
         batch = processed_input2batch([getitem(temp_dict)])
         return batch
-
-
-def file2temporary_dict(wav_fn):
-    '''
-        read from file, store data in temporary dicts
-    '''
-    song_info = wav_fn.split('/')
-    item_name = raw_item_name = song_info[-1].split('.')[-2]
-    temp_dict = {}
-
-    temp_dict['wav_fn'] = wav_fn
-    temp_dict['spk_id'] = 'opencpop'
-
-    return item_name, temp_dict
 
 
 def getitem(item):

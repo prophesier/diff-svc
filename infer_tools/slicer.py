@@ -162,5 +162,31 @@ def main():
                         audio[start:len(audio)], sr)
 
 
+def cut(audio_path, db_thresh=-30, min_len=5000, win_l=300, win_s=20, max_sil_kept=500):
+    audio, sr = torchaudio.load(audio_path)
+    if len(audio.shape) == 2 and audio.shape[1] >= 2:
+        audio = torch.mean(audio, dim=0).unsqueeze(0)
+    audio = audio.cpu().numpy()[0]
+
+    slicer = Slicer(
+        sr=sr,
+        db_threshold=db_thresh,
+        min_length=min_len,
+        win_l=win_l,
+        win_s=win_s,
+        max_silence_kept=max_sil_kept
+    )
+    chunks = slicer.slice(audio)
+    start = 0
+    result = []
+    for i, chunk in enumerate(chunks):
+        end = chunk
+        result.append(audio[start:end])
+        start = end
+    if start != len(audio):
+        result.append(audio[start:len(audio)])
+    return result, sr
+
+
 if __name__ == '__main__':
     main()
