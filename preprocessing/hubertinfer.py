@@ -1,6 +1,6 @@
 import os.path
 from pathlib import Path
-
+import _io
 import numpy as np
 import torch
 
@@ -19,12 +19,13 @@ class Hubertencoder():
         self.hbt_model = hubert_soft(str(pt_path))
 
     def encode(self, wav_path):
-        npy_path = Path(wav_path).with_suffix('.npy')
+        if isinstance(wav_path, _io.BytesIO):
+            npy_path = ""
+            wav_path.seek(0)
+        else:
+            npy_path = Path(wav_path).with_suffix('.npy')
         if os.path.exists(npy_path):
             units = np.load(str(npy_path))
         else:
-            # sourceonnx = {"source": np.expand_dims(np.expand_dims(wav16, 0), 0)}
-            # unitsonnx = np.array(self.hubertsession.run(['embed'], sourceonnx)[0][0])
             units = get_units(self.hbt_model, wav_path, self.dev).cpu().numpy()[0]
-            # print(units.shape)
         return units  # [T,256]

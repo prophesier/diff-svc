@@ -1,3 +1,4 @@
+import _io
 import os
 import time
 
@@ -189,8 +190,11 @@ class Svc:
         return processed_input
 
     def pre(self, wav_fn, accelerate, use_crepe=True, thre=0.05):
-        song_info = wav_fn.split('/')
-        item_name = song_info[-1].split('.')[-2]
+        if isinstance(wav_fn, _io.BytesIO):
+            item_name = self.project_name
+        else:
+            song_info = wav_fn.split('/')
+            item_name = song_info[-1].split('.')[-2]
         temp_dict = {'wav_fn': wav_fn, 'spk_id': self.project_name}
 
         temp_dict = self.temporary_dict2processed_input(item_name, temp_dict, use_crepe, thre)
