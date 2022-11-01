@@ -5,11 +5,11 @@
 ```
 pip install -r requirements.txt
 ```
->2. requirements_short.txt 是上述环境的手动整理版，不含torch本体，也可以直接
+>2. (推荐)requirements_short.txt 是上述环境的手动整理版，不含torch本体，也可以直接
 ```
 pip install -r requirements_short.txt
 ```
->3. 根目录下有一份@三千整理的依赖列表requirements.png，是在某品牌云服务器上跑通的，也可以参考，十分感谢
+>3. 根目录下有一份@三千整理的依赖列表requirements.png，是在某品牌云服务器上跑通的，不过此torch版本已不兼容目前版本代码,但是其他部分版本可以参考，十分感谢
 
 ## 1.推理
 >使用根目录下的inference.ipynb进行推理或使用经过po主适配的@小狼的infer.py\
@@ -93,6 +93,9 @@ test_prefixes:
 - 5012
 - speaker1024
 重要：测试集*不可以*为空，为了不产生意外影响，建议尽量不要手动选择测试集
+
+endless_ds:False
+如果你的数据集过小，每个epoch时间很短，请将此项打开，将把正常的1000epoch作为一个epoch计算
 
 hubert_path: checkpoints/hubert/hubert.pt
 hubert模型的存放地址，确保这个路径是对的，一般解压checkpoints包之后就是这个路径不需要改,现已使用torch版本推理
@@ -186,8 +189,10 @@ os.environ['PYTHONPATH']='.'
 ```
 apt-get install libsndfile1 -y
 ```
+>2.5.4 cannot load import 'consume_prefix_in_state_dict_if_present'\
+torch版本过低，请更换高版本torch
 
->2.5.4 预处理数据过慢\
+>2.5.5 预处理数据过慢\
 检查是否在配置中开启了use_crepe，将其关闭可显著提升速度。\
 检查配置中hubert_gpu是否开启。
 

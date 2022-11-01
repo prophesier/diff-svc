@@ -1,25 +1,27 @@
-import warnings
-
-warnings.filterwarnings("ignore")
-import resampy
-import torchcrepe
-import parselmouth
-import os
-import torch
-from skimage.transform import resize
-from utils.text_encoder import TokenTextEncoder
-from utils.pitch_utils import f0_to_coarse
-import struct
-import webrtcvad
-from scipy.ndimage.morphology import binary_dilation
-import librosa
-import numpy as np
-from utils import audio
-import pyloudnorm as pyln
-import re
+from io import BytesIO
 import json
+import os
+import re
+import struct
+import warnings
 from collections import OrderedDict
 
+import librosa
+import numpy as np
+import parselmouth
+import pyloudnorm as pyln
+import resampy
+import torch
+import torchcrepe
+import webrtcvad
+from scipy.ndimage.morphology import binary_dilation
+from skimage.transform import resize
+
+from utils import audio
+from utils.pitch_utils import f0_to_coarse
+from utils.text_encoder import TokenTextEncoder
+
+warnings.filterwarnings("ignore")
 PUNCS = '!,.?;:'
 
 int16_max = (2 ** 15) - 1
@@ -105,14 +107,13 @@ def process_utterance(wav_path,
                       min_level_db=-100,
                       return_linear=False,
                       trim_long_sil=False, vocoder='pwg'):
-    if isinstance(wav_path, str):
+    if isinstance(wav_path, str) or isinstance(wav_path, BytesIO):
         if trim_long_sil:
             wav, _, _ = trim_long_silences(wav_path, sample_rate)
         else:
             wav, _ = librosa.core.load(wav_path, sr=sample_rate)
     else:
         wav = wav_path
-
     if loud_norm:
         meter = pyln.Meter(sample_rate)  # create BS.1770 meter
         loudness = meter.integrated_loudness(wav)
@@ -168,7 +169,7 @@ def get_pitch_parselmouth(wav_data, mel, hparams):
         assert False
 
     f0 = parselmouth.Sound(wav_data, hparams['audio_sample_rate']).to_pitch_ac(
-        time_step=time_step , voicing_threshold=0.6,
+        time_step=time_step, voicing_threshold=0.6,
         pitch_floor=f0_min, pitch_ceiling=f0_max).selected_array['frequency']
     lpad = pad_size * 2
     rpad = len(mel) - len(f0) - lpad
@@ -181,47 +182,51 @@ def get_pitch_parselmouth(wav_data, mel, hparams):
     if delta_l > 0:
         f0 = np.concatenate([f0, [f0[-1]] * delta_l], 0)
     f0 = f0[:len(mel)]
-    pitch_coarse = f0_to_coarse(f0,hparams)
+    pitch_coarse = f0_to_coarse(f0, hparams)
     return f0, pitch_coarse
+
+
 def get_pitch_crepe(wav_data, mel, hparams, threshold=0.05):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device("cuda")
-    #crepe只支持16khz采样率，需要重采样
+    # crepe只支持16khz采样率，需要重采样
     wav16k = resampy.resample(wav_data, hparams['audio_sample_rate'], 16000)
     wav16k_torch = torch.FloatTensor(wav16k).unsqueeze(0).to(device)
-    
-    #频率范围
+
+    # 频率范围
     f0_min = hparams['f0_min']
     f0_max = hparams['f0_max']
-    
-    #重采样后按照hopsize=80,也就是5ms一帧分析f0    
-    f0, pd = torchcrepe.predict(wav16k_torch, 16000, 80, f0_min, f0_max, pad=True, model='full', batch_size=1024, device=device, return_periodicity=True)
-    
-    #滤波，去掉静音，设置uv阈值，参考原仓库readme
+
+    # 重采样后按照hopsize=80,也就是5ms一帧分析f0
+    f0, pd = torchcrepe.predict(wav16k_torch, 16000, 80, f0_min, f0_max, pad=True, model='full', batch_size=1024,
+                                device=device, return_periodicity=True)
+
+    # 滤波，去掉静音，设置uv阈值，参考原仓库readme
     pd = torchcrepe.filter.median(pd, 3)
     pd = torchcrepe.threshold.Silence(-60.)(pd, wav16k_torch, 16000, 80)
     f0 = torchcrepe.threshold.At(threshold)(f0, pd)
     f0 = torchcrepe.filter.mean(f0, 3)
-    
-    #将nan频率（uv部分）转换为0频率
-    f0 = torch.where(torch.isnan(f0), torch.full_like(f0,0), f0)
-    
+
+    # 将nan频率（uv部分）转换为0频率
+    f0 = torch.where(torch.isnan(f0), torch.full_like(f0, 0), f0)
+
     '''
     np.savetxt('问棋-crepe.csv',np.array([0.005*np.arange(len(f0[0])),f0[0].cpu().numpy()]).transpose(),delimiter=',')
     '''
-    
-    #去掉0频率，并线性插值
+
+    # 去掉0频率，并线性插值
     nzindex = torch.nonzero(f0[0]).squeeze()
-    f0 = torch.index_select(f0[0],dim=0, index=nzindex).cpu().numpy()
-    time_org = 0.005*nzindex.cpu().numpy()
-    time_frame = np.arange(len(mel))*hparams['hop_size']/hparams['audio_sample_rate']
-    if f0.shape[0]==0:
-        f0=torch.FloatTensor(time_frame.shape[0]).fill_(0)
+    f0 = torch.index_select(f0[0], dim=0, index=nzindex).cpu().numpy()
+    time_org = 0.005 * nzindex.cpu().numpy()
+    time_frame = np.arange(len(mel)) * hparams['hop_size'] / hparams['audio_sample_rate']
+    if f0.shape[0] == 0:
+        f0 = torch.FloatTensor(time_frame.shape[0]).fill_(0)
         print('f0 all zero!')
     else:
         f0 = np.interp(time_frame, time_org, f0, left=f0[0], right=f0[-1])
-    pitch_coarse = f0_to_coarse(f0,hparams)
-    return f0,pitch_coarse
+    pitch_coarse = f0_to_coarse(f0, hparams)
+    return f0, pitch_coarse
+
 
 def remove_empty_lines(text):
     """remove empty lines"""
