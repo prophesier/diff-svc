@@ -1,30 +1,22 @@
-import logging
 import os
-import shutil
-import subprocess
 import time
 
 import librosa
 import numpy as np
 import soundfile
 import torch
-import torchaudio
 
 import utils
+from io import BytesIO
 from modules.fastspeech.pe import PitchExtractor
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
 from network.diff.net import DiffNet
-from network.vocoders.base_vocoder import VOCODERS
-from network.vocoders.base_vocoder import get_vocoder_cls
+from network.vocoders.base_vocoder import VOCODERS, get_vocoder_cls
 from preprocessing.data_gen_utils import get_pitch_parselmouth, get_pitch_crepe
 from preprocessing.hubertinfer import Hubertencoder
-from utils.hparams import hparams
-from utils.hparams import set_hparams
-from utils.pitch_utils import denorm_f0
-from utils.pitch_utils import norm_interp_f0
-
-logging.getLogger('matplotlib').setLevel(logging.WARNING)
+from utils.hparams import hparams, set_hparams
+from utils.pitch_utils import denorm_f0, norm_interp_f0
 
 
 def timeit(func):
@@ -42,32 +34,6 @@ def format_wav(audio_path):
     soundfile.write(audio_path[:-4] + ".wav", raw_audio, raw_sample_rate)
 
 
-def cut_wav(raw_audio_path, out_audio_name, input_wav_path, cut_time):
-    raw_audio, raw_sr = torchaudio.load(raw_audio_path)
-    if raw_audio.shape[-1] / raw_sr > cut_time:
-        subprocess.Popen(
-            f"python ./infer_tools/slicer.py {raw_audio_path} --out_name {out_audio_name} --out {input_wav_path}  --db_thresh -30",
-            shell=True).wait()
-    else:
-        shutil.copy(raw_audio_path, f"{input_wav_path}/{out_audio_name}-00.wav")
-
-
-def get_end_file(dir_path, end):
-    file_lists = []
-    for root, dirs, files in os.walk(dir_path):
-        files = [f for f in files if f[0] != '.']
-        dirs[:] = [d for d in dirs if d[0] != '.']
-        for f_file in files:
-            if f_file.endswith(end):
-                file_lists.append(os.path.join(root, f_file).replace("\\", "/"))
-    return file_lists
-
-
-def del_temp_wav(path_data):
-    for i in get_end_file(path_data, "wav"):  # os.listdir(path_data)#返回一个列表，里面是当前目录下面的所有东西的相对路径
-        os.remove(i)
-
-
 def fill_a_to_b(a, b):
     if len(a) < len(b):
         for _ in range(0, len(b) - len(a)):
@@ -81,7 +47,8 @@ def mkdir(paths: list):
 
 
 class Svc:
-    def __init__(self, project_name,config_name,hubert_gpu, model_path):
+    def __init__(self, project_name, config_name, hubert_gpu, model_path):
+        self.project_name = project_name
         self.DIFF_DECODERS = {
             'wavenet': lambda hp: DiffNet(hp['audio_num_mel_bins']),
             'fft': lambda hp: FFT(
@@ -91,7 +58,7 @@ class Svc:
         self.model_path = model_path
         self.dev = torch.device("cuda")
 
-        self._ = set_hparams(config=config_name, exp_name=project_name, infer=True,
+        self._ = set_hparams(config=config_name, exp_name=self.project_name, infer=True,
                              reset=True,
                              hparams_str='',
                              print_hparams=False)
@@ -107,8 +74,8 @@ class Svc:
         )
         self.load_ckpt()
         self.model.cuda()
-        hparams['hubert_gpu']=hubert_gpu
-        hparams['use_uv']=True
+        hparams['hubert_gpu'] = hubert_gpu
+        hparams['use_uv'] = True
         self.hubert = Hubertencoder(hparams['hubert_path'])
         self.pe = PitchExtractor().cuda()
         utils.load_ckpt(self.pe, hparams['pe_ckpt'], 'model', strict=True)
@@ -136,7 +103,7 @@ class Svc:
         batch['mel2ph_pred'] = outputs['mel2ph']
         batch['f0_gt'] = denorm_f0(batch['f0'], batch['uv'], hparams)
         if use_pe:
-            hparams['use_uv']=True
+            hparams['use_uv'] = True
             batch['f0_pred'] = self.pe(outputs['mel_out'])['f0_denorm_pred'].detach()
         else:
             batch['f0_pred'] = outputs.get('f0_denorm')
@@ -151,20 +118,11 @@ class Svc:
         # remove paddings
         mel_gt = prediction["mels"]
         mel_gt_mask = np.abs(mel_gt).sum(-1) > 0
-        mel_gt = mel_gt[mel_gt_mask]
-        mel2ph_gt = prediction.get("mel2ph")
-        mel2ph_gt = mel2ph_gt[mel_gt_mask] if mel2ph_gt is not None else None
+
         mel_pred = prediction["outputs"]
         mel_pred_mask = np.abs(mel_pred).sum(-1) > 0
         mel_pred = mel_pred[mel_pred_mask]
-        mel_gt = np.clip(mel_gt, hparams['mel_vmin'], hparams['mel_vmax'])
         mel_pred = np.clip(mel_pred, hparams['mel_vmin'], hparams['mel_vmax'])
-
-        mel2ph_pred = prediction.get("mel2ph_pred")
-        if mel2ph_pred is not None:
-            if len(mel2ph_pred) > len(mel_pred_mask):
-                mel2ph_pred = mel2ph_pred[:len(mel_pred_mask)]
-            mel2ph_pred = mel2ph_pred[mel_pred_mask]
 
         f0_gt = prediction.get("f0_gt")
         f0_pred = prediction.get("f0_pred")
@@ -183,6 +141,7 @@ class Svc:
         '''
 
         binarization_args = hparams['binarization_args']
+
         @timeit
         def get_pitch(wav, mel):
             # get ground truth f0 by self.get_pitch_algorithm
@@ -230,25 +189,18 @@ class Svc:
                 get_align(mel, hubert_encoded)
         return processed_input
 
-    def pre(self, in_path, accelerate, use_crepe=True, thre=0.05):
-        temp_dict = self.temporary_dict2processed_input(*file2temporary_dict(in_path), use_crepe, thre)
+    def pre(self, wav_fn, accelerate, use_crepe=True, thre=0.05):
+        if isinstance(wav_fn, BytesIO):
+            item_name = self.project_name
+        else:
+            song_info = wav_fn.split('/')
+            item_name = song_info[-1].split('.')[-2]
+        temp_dict = {'wav_fn': wav_fn, 'spk_id': self.project_name}
+
+        temp_dict = self.temporary_dict2processed_input(item_name, temp_dict, use_crepe, thre)
         hparams['pndm_speedup'] = accelerate
         batch = processed_input2batch([getitem(temp_dict)])
         return batch
-
-
-def file2temporary_dict(wav_fn):
-    '''
-        read from file, store data in temporary dicts
-    '''
-    song_info = wav_fn.split('/')
-    item_name = raw_item_name = song_info[-1].split('.')[-2]
-    temp_dict = {}
-
-    temp_dict['wav_fn'] = wav_fn
-    temp_dict['spk_id'] = 'opencpop'
-
-    return item_name, temp_dict
 
 
 def getitem(item):
