@@ -1,6 +1,6 @@
 import os.path
 from pathlib import Path
-import _io
+from io import BytesIO
 import numpy as np
 import torch
 
@@ -19,7 +19,7 @@ class Hubertencoder():
         self.hbt_model = hubert_soft(str(pt_path))
 
     def encode(self, wav_path):
-        if isinstance(wav_path, _io.BytesIO):
+        if isinstance(wav_path, BytesIO):
             npy_path = ""
             wav_path.seek(0)
         else:
