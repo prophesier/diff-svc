@@ -1,4 +1,4 @@
-import _io
+from io import BytesIO
 import json
 import os
 import re
@@ -107,7 +107,7 @@ def process_utterance(wav_path,
                       min_level_db=-100,
                       return_linear=False,
                       trim_long_sil=False, vocoder='pwg'):
-    if isinstance(wav_path, str) or isinstance(wav_path, _io.BytesIO):
+    if isinstance(wav_path, str) or isinstance(wav_path, BytesIO):
         if trim_long_sil:
             wav, _, _ = trim_long_silences(wav_path, sample_rate)
         else:
