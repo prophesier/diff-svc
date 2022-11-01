@@ -1,4 +1,3 @@
-import _io
 import os
 import time
 
@@ -8,6 +7,7 @@ import soundfile
 import torch
 
 import utils
+from io import BytesIO
 from modules.fastspeech.pe import PitchExtractor
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
@@ -190,7 +190,7 @@ class Svc:
         return processed_input
 
     def pre(self, wav_fn, accelerate, use_crepe=True, thre=0.05):
-        if isinstance(wav_fn, _io.BytesIO):
+        if isinstance(wav_fn, BytesIO):
             item_name = self.project_name
         else:
             song_info = wav_fn.split('/')
