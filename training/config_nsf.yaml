@@ -60,7 +60,8 @@ gen_dir_name: ''
 gen_tgt_spk_id: -1
 hidden_size: 256
 hop_size: 512
-hubert_path: checkpoints/hubert/hubert.onnx
+hubert_path: checkpoints/hubert/hubert_soft.pt
+hubert_gpu: true
 infer: false
 keep_bins: 128
 lambda_commit: 0.25
