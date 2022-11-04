@@ -1,7 +1,8 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 ## updates:
->2022.11.2 整合新声码器代码，更新parselmouth算法\
+>2022.11.4 添加梅尔谱保存功能
+2022.11.2 整合新声码器代码，更新parselmouth算法\
 2022.11.1 优化推理部分\
 2022.10.29 整理推理部分，添加长音频自动切片功能。\
 2022.10.28 将hubert的onnx推理迁移为torch推理，并整理推理逻辑。\
