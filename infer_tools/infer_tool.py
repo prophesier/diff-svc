@@ -1,5 +1,6 @@
 import os
 import time
+from io import BytesIO
 
 import librosa
 import numpy as np
@@ -7,7 +8,6 @@ import soundfile
 import torch
 
 import utils
-from io import BytesIO
 from modules.fastspeech.pe import PitchExtractor
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
@@ -38,6 +38,17 @@ def fill_a_to_b(a, b):
     if len(a) < len(b):
         for _ in range(0, len(b) - len(a)):
             a.append(a[0])
+
+
+def get_end_file(dir_path, end):
+    file_lists = []
+    for root, dirs, files in os.walk(dir_path):
+        files = [f for f in files if f[0] != '.']
+        dirs[:] = [d for d in dirs if d[0] != '.']
+        for f_file in files:
+            if f_file.endswith(end):
+                file_lists.append(os.path.join(root, f_file).replace("\\", "/"))
+    return file_lists
 
 
 def mkdir(paths: list):
@@ -86,7 +97,7 @@ class Svc:
         utils.load_ckpt(self.model, self.model_path, model_name, force, strict)
 
     @timeit
-    def infer(self, in_path, key, acc, use_pe=True, use_crepe=True, thre=0.05, **kwargs):
+    def infer(self, in_path, key, acc, use_pe=True, use_crepe=True, thre=0.05, singer=False, **kwargs):
         batch = self.pre(in_path, acc, use_crepe, thre)
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
         hubert = batch['hubert']
@@ -107,10 +118,10 @@ class Svc:
             batch['f0_pred'] = self.pe(outputs['mel_out'])['f0_denorm_pred'].detach()
         else:
             batch['f0_pred'] = outputs.get('f0_denorm')
-        return self.after_infer(batch)
+        return self.after_infer(batch, singer, in_path)
 
     @timeit
-    def after_infer(self, prediction):
+    def after_infer(self, prediction, singer, in_path):
         for k, v in prediction.items():
             if type(v) is torch.Tensor:
                 prediction[k] = v.cpu().numpy()
@@ -132,6 +143,13 @@ class Svc:
             f0_pred = f0_pred[:len(mel_pred_mask)]
         f0_pred = f0_pred[mel_pred_mask]
         torch.cuda.is_available() and torch.cuda.empty_cache()
+
+        if singer:
+            data_path = in_path.replace("batch", "singer_data")
+            mel_path = data_path[:-4] + "_mel.npy"
+            f0_path = data_path[:-4] + "_f0.npy"
+            np.save(mel_path, mel_pred)
+            np.save(f0_path, f0_pred)
         wav_pred = self.vocoder.spec2wav(mel_pred, f0=f0_pred)
         return f0_gt, f0_pred, wav_pred
 
