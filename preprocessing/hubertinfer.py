@@ -12,6 +12,8 @@ from utils.hparams import hparams
 
 class Hubertencoder():
     def __init__(self, pt_path='checkpoints/hubert/hubert_soft.pt'):
+        if not 'use_vec' in hparams.keys():
+            hparams['use_vec'] = False
         if hparams['use_vec']:
             pt_path = "checkpoints/vec/checkpoint_best_legacy_500.pt"
             self.dev = torch.device("cuda")
