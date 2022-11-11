@@ -28,7 +28,7 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
     epsilon = 0.0002
     for data in audio_data:
         print(f'#=====segment start, {round(len(data) / audio_sr, 3)}s======')
-        length = int(len(data) / audio_sr * hparams['audio_sample_rate'])
+        length = int(np.ceil(len(data) / audio_sr * hparams['audio_sample_rate']))
         raw_path = io.BytesIO()
         soundfile.write(raw_path, data, audio_sr, format="wav")
         if hparams['debug']:
@@ -37,7 +37,7 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
         if np.var(data) < epsilon:
             print('jump empty segment')
             _f0_tst, _f0_pred, _audio = (
-                np.zeros(int(length / hparams['hop_size'])), np.zeros(int(length / hparams['hop_size'])),
+                np.zeros(int(np.ceil(length / hparams['hop_size']))), np.zeros(int(np.ceil(length / hparams['hop_size']))),
                 np.zeros(length))
         else:
             _f0_tst, _f0_pred, _audio = svc_model.infer(raw_path, key=key, acc=acc, use_pe=use_pe, use_crepe=use_crepe,
