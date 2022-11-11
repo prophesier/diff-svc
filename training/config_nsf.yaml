@@ -176,6 +176,7 @@ use_spk_embed: false
 use_spk_id: false
 use_split_spk_id: false
 use_uv: true
+use_vec: false
 use_var_enc: false
 val_check_interval: 2000
 valid_num: 0
