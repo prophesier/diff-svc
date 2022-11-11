@@ -3,12 +3,13 @@ from pathlib import Path
 import librosa
 import numpy as np
 import torch
-from fairseq import checkpoint_utils
+
 
 
 def load_model(vec_path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("load model(s) from {}".format(vec_path))
+    from fairseq import checkpoint_utils
     models, saved_cfg, task = checkpoint_utils.load_model_ensemble_and_task(
         [vec_path],
         suffix="",
