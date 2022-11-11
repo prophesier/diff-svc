@@ -33,7 +33,7 @@ CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [y
 ### 已训练模型
 >目前po主已在opencpop数据集和猫雷直播数据集进行过训练，并有多人进行过其他数据集训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
 使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
-<img src="./ckpt.png" width=256/>
+<img src="./ckpt.jpg" width=256/>
 
 ## Acknowledgements
 >项目基于[diffsinger原仓库](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
