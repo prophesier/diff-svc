@@ -96,7 +96,7 @@ class Svc:
     def load_ckpt(self, model_name='model', force=True, strict=True):
         utils.load_ckpt(self.model, self.model_path, model_name, force, strict)
 
-    @timeit
+    
     def infer(self, in_path, key, acc, use_pe=True, use_crepe=True, thre=0.05, singer=False, **kwargs):
         batch = self.pre(in_path, acc, use_crepe, thre)
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
@@ -104,12 +104,17 @@ class Svc:
         ref_mels = batch["mels"]
         mel2ph = batch['mel2ph']
         batch['f0'] = batch['f0'] + (key / 12)
+        batch['f0'][batch['f0']>np.log2(hparams['f0_max'])]=0
         f0 = batch['f0']
         uv = batch['uv']
-        outputs = self.model(
-            hubert.cuda(), spk_embed=spk_embed, mel2ph=mel2ph.cuda(), f0=f0.cuda(), uv=uv.cuda(),
-            ref_mels=ref_mels.cuda(),
-            infer=True, **kwargs)
+        @timeit
+        def diff_infer():
+            outputs = self.model(
+                hubert.cuda(), spk_embed=spk_embed, mel2ph=mel2ph.cuda(), f0=f0.cuda(), uv=uv.cuda(),
+                ref_mels=ref_mels.cuda(),
+                infer=True, **kwargs)
+            return outputs
+        outputs=diff_infer()
         batch['outputs'] = self.model.out2mel(outputs['mel_out'])
         batch['mel2ph_pred'] = outputs['mel2ph']
         batch['f0_gt'] = denorm_f0(batch['f0'], batch['uv'], hparams)

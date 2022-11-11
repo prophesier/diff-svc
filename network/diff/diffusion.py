@@ -6,7 +6,6 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from tqdm import tqdm
-from einops import rearrange
 
 from modules.fastspeech.fs2 import FastSpeech2
 # from modules.diffsinger_midi.fs2 import FastSpeech2MIDI
@@ -264,7 +263,7 @@ class GaussianDiffusion(nn.Module):
                 #     x = self.p_sample(x, torch.full((b,), i, device=device, dtype=torch.long), cond)
             else:
                 t = self.K_step
-                print('===> gaussion start.')
+                #print('===> gaussion start.')
                 shape = (cond.shape[0], 1, self.mel_bins, cond.shape[2])
                 x = torch.randn(shape, device=device)
             if hparams.get('pndm_speedup') and hparams['pndm_speedup'] > 1:
