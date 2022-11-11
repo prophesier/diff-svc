@@ -1,7 +1,7 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 ## updates:
->2022.11.11 修正切片时长误差，补充对44.1khz的适配\
+>2022.11.11 修正切片时长误差，补充对44.1khz的适配, 增加对contentvec的支持\
 2022.11.4 添加梅尔谱保存功能\
 2022.11.2 整合新声码器代码，更新parselmouth算法\
 2022.11.1 优化推理部分\
