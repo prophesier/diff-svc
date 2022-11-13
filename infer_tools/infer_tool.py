@@ -29,7 +29,13 @@ def read_temp(file_name):
     else:
         with open(file_name, "r") as f:
             data = f.read()
-        return json.loads(data)
+        data_dict = json.loads(data)
+        if os.path.getsize(file_name) > 50 * 1024 * 1024:
+            print("clean f0_temp")
+            for wav_hash in list(data_dict.keys()):
+                if int(time.time()) - int(data_dict[wav_hash]["time"]) > 14 * 24 * 3600:
+                    del data_dict[wav_hash]
+        return data_dict
 
 
 f0_dict = read_temp("./infer_tools/f0_temp.json")
@@ -194,17 +200,16 @@ class Svc:
             # get ground truth f0 by self.get_pitch_algorithm
             global f0_dict
             if use_crepe:
-                temp_dict['wav_fn'].seek(0)
-                md5 = get_md5(temp_dict['wav_fn'].read())
+                md5 = get_md5(wav)
                 if f"{md5}_gt" in f0_dict.keys():
                     print("load temp crepe f0")
-                    gt_f0 = np.array(f0_dict[f"{md5}_gt"])
-                    coarse_f0 = np.array(f0_dict[f"{md5}_coarse"])
+                    gt_f0 = np.array(f0_dict[f"{md5}_gt"]["f0"])
+                    coarse_f0 = np.array(f0_dict[f"{md5}_coarse"]["f0"])
                 else:
                     torch.cuda.is_available() and torch.cuda.empty_cache()
                     gt_f0, coarse_f0 = get_pitch_crepe(wav, mel, hparams, thre)
-                    f0_dict[f"{md5}_gt"] = gt_f0.tolist()
-                    f0_dict[f"{md5}_coarse"] = coarse_f0.tolist()
+                    f0_dict[f"{md5}_gt"] = {"f0": gt_f0.tolist(), "time": int(time.time())}
+                    f0_dict[f"{md5}_coarse"] = {"f0": coarse_f0.tolist(), "time": int(time.time())}
                     write_temp("./infer_tools/f0_temp.json", f0_dict)
             else:
                 gt_f0, coarse_f0 = get_pitch_parselmouth(wav, mel, hparams)

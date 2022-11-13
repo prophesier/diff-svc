@@ -1,4 +1,5 @@
 import io
+import time
 from pathlib import Path
 
 import librosa
@@ -15,7 +16,6 @@ chunks_dict = infer_tool.read_temp("./infer_tools/chunks_temp.json")
 
 def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise_step, project_name='', f_name=None,
              file_path=None, out_path=None):
-    use_pe=use_pe if hparams['audio_sample_rate']==24000 else False
     if file_path is None:
         raw_audio_path = f"./raw/{f_name}"
         clean_name = f_name[:-4]
@@ -29,10 +29,10 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
     wav_hash = infer_tool.get_md5(audio)
     if wav_hash in chunks_dict.keys():
         print("load chunks from temp")
-        chunks = chunks_dict[wav_hash]
+        chunks = chunks_dict[wav_hash]["chunks"]
     else:
         chunks = slicer.cut(wav_path)
-        chunks_dict[wav_hash] = chunks
+        chunks_dict[wav_hash] = {"chunks": chunks, "time": int(time.time())}
         infer_tool.write_temp("./infer_tools/chunks_temp.json", chunks_dict)
     audio_data, audio_sr = slicer.chunks2audio(wav_path, chunks)
 
@@ -91,5 +91,7 @@ if __name__ == '__main__':
 
     model = Svc(project_name, config_path, hubert_gpu, model_path)
     for f_name, tran in zip(file_names, trans):
+        if "." not in f_name:
+            f_name += ".wav"
         run_clip(model, key=tran, acc=accelerate, use_crepe=True, thre=0.05, use_pe=True, use_gt_mel=False,
                  add_noise_step=500, f_name=f_name, project_name=project_name)
