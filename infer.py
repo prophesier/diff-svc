@@ -33,8 +33,8 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
         chunks = chunks_dict[wav_hash]["chunks"]
     else:
         chunks = slicer.cut(wav_path)
-        chunks_dict[wav_hash] = {"chunks": chunks, "time": int(time.time())}
-        infer_tool.write_temp("./infer_tools/chunks_temp.json", chunks_dict)
+    chunks_dict[wav_hash] = {"chunks": chunks, "time": int(time.time())}
+    infer_tool.write_temp("./infer_tools/chunks_temp.json", chunks_dict)
     audio_data, audio_sr = slicer.chunks2audio(wav_path, chunks)
 
     count = 0

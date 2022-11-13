@@ -208,9 +208,9 @@ class Svc:
                 else:
                     torch.cuda.is_available() and torch.cuda.empty_cache()
                     gt_f0, coarse_f0 = get_pitch_crepe(wav, mel, hparams, thre)
-                    f0_dict[f"{md5}_gt"] = {"f0": gt_f0.tolist(), "time": int(time.time())}
-                    f0_dict[f"{md5}_coarse"] = {"f0": coarse_f0.tolist(), "time": int(time.time())}
-                    write_temp("./infer_tools/f0_temp.json", f0_dict)
+                f0_dict[f"{md5}_gt"] = {"f0": gt_f0.tolist(), "time": int(time.time())}
+                f0_dict[f"{md5}_coarse"] = {"f0": coarse_f0.tolist(), "time": int(time.time())}
+                write_temp("./infer_tools/f0_temp.json", f0_dict)
             else:
                 gt_f0, coarse_f0 = get_pitch_parselmouth(wav, mel, hparams)
             processed_input['f0'] = gt_f0
