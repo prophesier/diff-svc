@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import time
 from io import BytesIO
@@ -17,6 +19,31 @@ from preprocessing.data_gen_utils import get_pitch_parselmouth, get_pitch_crepe
 from preprocessing.hubertinfer import Hubertencoder
 from utils.hparams import hparams, set_hparams
 from utils.pitch_utils import denorm_f0, norm_interp_f0
+
+
+def read_temp(file_name):
+    if not os.path.exists(file_name):
+        with open(file_name, "w") as f:
+            f.write(json.dumps({"info": "temp_dict"}))
+        return {}
+    else:
+        with open(file_name, "r") as f:
+            data = f.read()
+        data_dict = json.loads(data)
+        if os.path.getsize(file_name) > 50 * 1024 * 1024:
+            print("clean f0_temp")
+            for wav_hash in list(data_dict.keys()):
+                if int(time.time()) - int(data_dict[wav_hash]["time"]) > 14 * 24 * 3600:
+                    del data_dict[wav_hash]
+        return data_dict
+
+
+f0_dict = read_temp("./infer_tools/f0_temp.json")
+
+
+def write_temp(file_name, data):
+    with open(file_name, "w") as f:
+        f.write(json.dumps(data))
 
 
 def timeit(func):
@@ -55,6 +82,10 @@ def mkdir(paths: list):
     for path in paths:
         if not os.path.exists(path):
             os.mkdir(path)
+
+
+def get_md5(content):
+    return hashlib.new("md5", content).hexdigest()
 
 
 class Svc:
@@ -96,7 +127,6 @@ class Svc:
     def load_ckpt(self, model_name='model', force=True, strict=True):
         utils.load_ckpt(self.model, self.model_path, model_name, force, strict)
 
-    
     def infer(self, in_path, key, acc, use_pe=True, use_crepe=True, thre=0.05, singer=False, **kwargs):
         batch = self.pre(in_path, acc, use_crepe, thre)
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
@@ -168,9 +198,19 @@ class Svc:
         @timeit
         def get_pitch(wav, mel):
             # get ground truth f0 by self.get_pitch_algorithm
+            global f0_dict
             if use_crepe:
-                torch.cuda.is_available() and torch.cuda.empty_cache()
-                gt_f0, coarse_f0 = get_pitch_crepe(wav, mel, hparams, thre)  #
+                md5 = get_md5(wav)
+                if f"{md5}_gt" in f0_dict.keys():
+                    print("load temp crepe f0")
+                    gt_f0 = np.array(f0_dict[f"{md5}_gt"]["f0"])
+                    coarse_f0 = np.array(f0_dict[f"{md5}_coarse"]["f0"])
+                else:
+                    torch.cuda.is_available() and torch.cuda.empty_cache()
+                    gt_f0, coarse_f0 = get_pitch_crepe(wav, mel, hparams, thre)
+                f0_dict[f"{md5}_gt"] = {"f0": gt_f0.tolist(), "time": int(time.time())}
+                f0_dict[f"{md5}_coarse"] = {"f0": coarse_f0.tolist(), "time": int(time.time())}
+                write_temp("./infer_tools/f0_temp.json", f0_dict)
             else:
                 gt_f0, coarse_f0 = get_pitch_parselmouth(wav, mel, hparams)
             processed_input['f0'] = gt_f0
