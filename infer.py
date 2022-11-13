@@ -1,6 +1,7 @@
 import io
 from pathlib import Path
 
+import librosa
 import numpy as np
 import soundfile
 
@@ -8,6 +9,8 @@ from infer_tools import infer_tool
 from infer_tools import slicer
 from infer_tools.infer_tool import Svc
 from utils.hparams import hparams
+
+chunks_dict = infer_tool.read_temp("./infer_tools/chunks_temp.json")
 
 
 def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise_step, project_name='', f_name=None,
@@ -19,7 +22,18 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
         raw_audio_path = file_path
         clean_name = str(Path(file_path).name)[:-4]
     infer_tool.format_wav(raw_audio_path)
-    audio_data, audio_sr = slicer.cut(Path(raw_audio_path).with_suffix('.wav'))
+    wav_path = Path(raw_audio_path).with_suffix('.wav')
+    global chunks_dict
+    audio, sr = librosa.load(wav_path, mono=True)
+    wav_hash = infer_tool.get_md5(audio)
+    if wav_hash in chunks_dict.keys():
+        print("load chunks from temp")
+        chunks = chunks_dict[wav_hash]
+    else:
+        chunks = slicer.cut(wav_path)
+        chunks_dict[wav_hash] = chunks
+        infer_tool.write_temp("./infer_tools/chunks_temp.json", chunks_dict)
+    audio_data, audio_sr = slicer.chunks2audio(wav_path, chunks)
 
     count = 0
     f0_tst = []
