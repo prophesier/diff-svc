@@ -26,7 +26,7 @@ datasets:
 debug: false
 dec_ffn_kernel_size: 9
 dec_layers: 4
-decay_steps: 20000
+decay_steps: 30000
 decoder_type: fft
 dict_dir: ''
 diff_decoder_type: wavenet
@@ -133,7 +133,7 @@ raw_data_dir: data/raw/nyaru
 ref_norm_layer: bn
 rel_pos: true
 reset_phone_dict: true
-residual_channels: 256
+residual_channels: 384
 residual_layers: 20
 save_best: false
 save_ckpt: true
