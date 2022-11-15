@@ -23,7 +23,7 @@ Singing Voice Conversion via diffusion model
 如果将此项目用于任何其他企划，请提前联系并告知本仓库作者,十分感谢。\
 >This repository was established based on the purpose of acadamic exchange, not for production environment. And this repository is not responsible for any copyright issues associated with the output of it.\
 If you distribute/publish either the code or the output of the model, please cite this repository.\
-If you utilize this repo as part of your project, please inform the author in advance, thank you.
+If you wish to utilize this repo as part of your project, please inform the author in advance, thank you.
 
 ## 推理：
 
