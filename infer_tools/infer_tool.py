@@ -10,6 +10,7 @@ import soundfile
 import torch
 
 import utils
+from pathlib import Path
 from modules.fastspeech.pe import PitchExtractor
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
@@ -59,7 +60,7 @@ def timeit(func):
 
 def format_wav(audio_path):
     raw_audio, raw_sample_rate = librosa.load(audio_path, mono=True)
-    soundfile.write(audio_path[:-4] + ".wav", raw_audio, raw_sample_rate)
+    soundfile.write(Path(audio_path).with_suffix(".wav"), raw_audio, raw_sample_rate)
 
 
 def fill_a_to_b(a, b):
