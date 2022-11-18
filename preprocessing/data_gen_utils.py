@@ -201,7 +201,7 @@ def get_pitch_world(wav_data, mel, hparams):
     f0_max = hparams['f0_max']
 
     # Here's to hoping it uses numpy stuff !
-    f0, _ = world.harvest(wav_data, hparams['audio_sample_rate'], f0_min, f0_max, time_step)
+    f0, _ = world.harvest(wav_data.astype(np.double), hparams['audio_sample_rate'], f0_min, f0_max, time_step)
     
     pad_size=(int(len(wav_data) // hparams['hop_size']) - len(f0) + 1) // 2
     f0 = np.pad(f0,[[pad_size,len(mel) - len(f0) - pad_size]], mode='constant')
