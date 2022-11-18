@@ -16,7 +16,7 @@ from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
 from network.diff.net import DiffNet
 from network.vocoders.base_vocoder import VOCODERS, get_vocoder_cls
-from preprocessing.data_gen_utils import get_pitch_parselmouth, get_pitch_crepe
+from preprocessing.data_gen_utils import get_pitch_parselmouth, get_pitch_crepe, get_pitch_world
 from preprocessing.hubertinfer import Hubertencoder
 from utils.hparams import hparams, set_hparams
 from utils.pitch_utils import denorm_f0, norm_interp_f0
@@ -214,7 +214,7 @@ class Svc:
                 f0_dict[f"{md5}_coarse"] = {"f0": coarse_f0.tolist(), "time": int(time.time())}
                 write_temp("./infer_tools/f0_temp.json", f0_dict)
             else:
-                gt_f0, coarse_f0 = get_pitch_parselmouth(wav, mel, hparams)
+                gt_f0, coarse_f0 = get_pitch_world(wav, mel, hparams)
             processed_input['f0'] = gt_f0
             processed_input['pitch'] = coarse_f0
 
