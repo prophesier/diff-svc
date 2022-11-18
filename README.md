@@ -1,7 +1,7 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 
-this just adds world as a pitch estimator (hopefully)
+this just replaces parselmouth with world as a pitch estimator for inference (hopefully)
 
 ## updates:
 >2022.11.13 修正中断后读取模型的epoch/steps显示问题，添加f0处理的磁盘缓存，添加实时变声推理的支持文件\
