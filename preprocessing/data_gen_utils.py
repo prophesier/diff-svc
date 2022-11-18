@@ -17,7 +17,6 @@ import webrtcvad
 from scipy.ndimage.morphology import binary_dilation
 from skimage.transform import resize
 import pyworld as world
-import harmof0
 
 from utils import audio
 from utils.pitch_utils import f0_to_coarse
@@ -212,14 +211,6 @@ def get_pitch_world(wav_data, mel, hparams):
     pitch_coarse = f0_to_coarse(f0, hparams)
     return f0, pitch_coarse
 
-def get_pitch_harmof0(wav_data, mel, hparams):
-    pit = harmof0.PitchTracker(fmin=hparams['f0_min'], sample_rate=hparams['audio_sample_rate'], hop_length=hparams['hop_size'], post_processing=True)
-
-    # This is gonna be iffy
-    _, f0, _, _ = pit.pred(wav_data, hparams['audio_sample_rate'])
-
-    pitch_coarse = f0_to_coarse(f0, hparams)
-    return f0, pitch_coarse
 
 def get_pitch_crepe(wav_data, mel, hparams, threshold=0.05):
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
