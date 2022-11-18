@@ -1,6 +1,8 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 
+this just adds world as a pitch estimator (hopefully)
+
 ## updates:
 >2022.11.13 修正中断后读取模型的epoch/steps显示问题，添加f0处理的磁盘缓存，添加实时变声推理的支持文件\
 2022.11.11 修正切片时长误差，补充对44.1khz的适配, 增加对contentvec的支持\
