@@ -158,9 +158,9 @@ def get_pitch_parselmouth(wav_data, mel, hparams):
     :param hparams:
     :return:
     """
-    time_step = hparams['hop_size'] / hparams['audio_sample_rate']
-    f0_min = hparams['f0_min']
-    f0_max = hparams['f0_max']
+    # time_step = hparams['hop_size'] / hparams['audio_sample_rate']
+    # f0_min = hparams['f0_min']
+    # f0_max = hparams['f0_max']
 
     # if hparams['hop_size'] == 128:
     #     pad_size = 4
@@ -169,9 +169,9 @@ def get_pitch_parselmouth(wav_data, mel, hparams):
     # else:
     #     assert False
 
-    f0 = parselmouth.Sound(wav_data, hparams['audio_sample_rate']).to_pitch_ac(
-        time_step=time_step, voicing_threshold=0.6,
-        pitch_floor=f0_min, pitch_ceiling=f0_max).selected_array['frequency']
+    # f0 = parselmouth.Sound(wav_data, hparams['audio_sample_rate']).to_pitch_ac(
+    #     time_step=time_step, voicing_threshold=0.6,
+    #     pitch_floor=f0_min, pitch_ceiling=f0_max).selected_array['frequency']
     # lpad = pad_size * 2
     # rpad = len(mel) - len(f0) - lpad
     # f0 = np.pad(f0, [[lpad, rpad]], mode='constant')
@@ -183,10 +183,13 @@ def get_pitch_parselmouth(wav_data, mel, hparams):
     # if delta_l > 0:
     #     f0 = np.concatenate([f0, [f0[-1]] * delta_l], 0)
     # f0 = f0[:len(mel)]
-    pad_size=(int(len(wav_data) // hparams['hop_size']) - len(f0) + 1) // 2
-    f0 = np.pad(f0,[[pad_size,len(mel) - len(f0) - pad_size]], mode='constant')
-    pitch_coarse = f0_to_coarse(f0, hparams)
-    return f0, pitch_coarse
+    # pad_size=(int(len(wav_data) // hparams['hop_size']) - len(f0) + 1) // 2
+    # f0 = np.pad(f0,[[pad_size,len(mel) - len(f0) - pad_size]], mode='constant')
+    # pitch_coarse = f0_to_coarse(f0, hparams)
+    # return f0, pitch_coarse
+
+    # Bye bye Parselmouth !
+    return get_pitch_world(wav_data, mel, hparams)
 
 def get_pitch_world(wav_data, mel, hparams):
     """
@@ -203,11 +206,17 @@ def get_pitch_world(wav_data, mel, hparams):
     # Here's to hoping it uses numpy stuff !
     f0, _ = world.harvest(wav_data.astype(np.double), hparams['audio_sample_rate'], f0_min, f0_max, time_step)
 
+    # Change padding
     len_diff = len(mel) - len(f0)
     if len_diff > 0:
-        f0 = np.pad(f0, [[0, len_diff]], mode='constant')
-    elif len_diff < 0:
-        f0 = f0[:len_diff]
+        pad_len = (len_diff + 1) // 2
+        f0 = np.pad(f0, [[pad_len, len_diff - pad_len]])
+    else:
+        pad_len = (1 - len_diff) // 2
+        rpad = pad_len + len_diff
+        if rpad != 0:
+            f0 = f0[pad_len:rpad]
+        f0 = f0[pad_len:]
     pitch_coarse = f0_to_coarse(f0, hparams)
     return f0, pitch_coarse
 
