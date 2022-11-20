@@ -1,11 +1,11 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 ## updates:
->2022.11.13 修正中断后读取模型的epoch/steps显示问题，添加f0处理的磁盘缓存，添加实时变声推理的支持文件\
+>2022.11.20 增加对推理时多数格式的输入和保存，无需手动借助其他软件转换\
+2022.11.13 修正中断后读取模型的epoch/steps显示问题，添加f0处理的磁盘缓存，添加实时变声推理的支持文件\
 2022.11.11 修正切片时长误差，补充对44.1khz的适配, 增加对contentvec的支持\
 2022.11.4 添加梅尔谱保存功能\
 2022.11.2 整合新声码器代码，更新parselmouth算法\
-2022.11.1 优化推理部分\
 2022.10.29 整理推理部分，添加长音频自动切片功能。\
 2022.10.28 将hubert的onnx推理迁移为torch推理，并整理推理逻辑。\
 <font color=#FFA500>如原先下载过onnx的hubert模型需重新下载并替换为pt模型</font>，config不需要改，目前可以实现1060 6G显存的直接GPU推理与预处理，详情请查看文档。\
@@ -32,10 +32,11 @@ CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [y
 ```
 详细训练过程和各种参数介绍请查看[推理与训练说明](./doc/train_and_inference.markdown)
 ### 已训练模型
->目前po主已在opencpop数据集和猫雷直播数据集进行过训练，并有多人进行过其他数据集训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
+>目前本项目已在众多数据集进行过训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
 使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
 <img src="./ckpt.jpg" width=256/>
 
 ## Acknowledgements
->项目基于[diffsinger原仓库](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
+>项目基于[diffsinger](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
 同时也十分感谢openvpi成员在开发训练过程中给予的帮助。
+>注意：此项目与同名论文[DiffSVC](https://arxiv.org/abs/2105.13871)无任何联系，请勿混淆！
