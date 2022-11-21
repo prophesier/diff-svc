@@ -142,7 +142,7 @@ class PitchExtractor(nn.Module):
         ret['pitch_pred'] = pitch_pred = self.pitch_predictor(mel_hidden)
 
         pitch_padding = mel_input.abs().sum(-1) == 0
-        use_uv = hparams['pitch_type'] == 'frame' and hparams['use_uv']
+        use_uv = hparams['pitch_type'] == 'frame' #and hparams['use_uv']
         ret['f0_denorm_pred'] = denorm_f0(
             pitch_pred[:, :, 0], (pitch_pred[:, :, 1] > 0) if use_uv else None,
             hparams, pitch_padding=pitch_padding)

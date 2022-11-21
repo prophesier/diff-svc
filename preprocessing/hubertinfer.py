@@ -25,7 +25,7 @@ class Hubertencoder():
             else:
                 self.use_gpu = True
             self.dev = torch.device("cuda" if self.use_gpu and torch.cuda.is_available() else "cpu")
-            self.hbt_model = hubert_soft(str(pt_path))
+            self.hbt_model = hubert_soft(str(pt_path)).to(self.dev)
 
     def encode(self, wav_path):
         if isinstance(wav_path, BytesIO):

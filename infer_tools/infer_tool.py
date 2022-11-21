@@ -119,7 +119,6 @@ class Svc:
         self.load_ckpt()
         self.model.cuda()
         hparams['hubert_gpu'] = hubert_gpu
-        hparams['use_uv'] = True
         self.hubert = Hubertencoder(hparams['hubert_path'])
         self.pe = PitchExtractor().cuda()
         utils.load_ckpt(self.pe, hparams['pe_ckpt'], 'model', strict=True)
@@ -151,7 +150,6 @@ class Svc:
         batch['mel2ph_pred'] = outputs['mel2ph']
         batch['f0_gt'] = denorm_f0(batch['f0'], batch['uv'], hparams)
         if use_pe:
-            hparams['use_uv'] = True
             batch['f0_pred'] = self.pe(outputs['mel_out'])['f0_denorm_pred'].detach()
         else:
             batch['f0_pred'] = outputs.get('f0_denorm')
