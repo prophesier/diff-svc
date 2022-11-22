@@ -1,21 +1,15 @@
 '''
     file -> temporary_dict -> processed_input -> batch
 '''
-from webbrowser import get
 from utils.hparams import hparams
 from network.vocoders.base_vocoder import VOCODERS
 import numpy as np
 import traceback
-import librosa
-import os
-import soundfile as sf
 from pathlib import Path
-from preprocessing.data_gen_utils import get_pitch_parselmouth,get_pitch_crepe
-from preprocessing.base_binarizer import BinarizationError
+from .data_gen_utils import get_pitch_parselmouth,get_pitch_crepe
+from .base_binarizer import BinarizationError
 import torch
 import utils
-import parselmouth
-from network.vocoders.base_vocoder import get_vocoder_cls
 
 class File2Batch:
     '''
@@ -100,7 +94,7 @@ class File2Batch:
     
         def get_align(meta_data, mel, phone_encoded, hop_size=hparams['hop_size'], audio_sample_rate=hparams['audio_sample_rate']):
             mel2ph = np.zeros([mel.shape[0]], int)
-            start_frame=1
+            start_frame=0
             ph_durs = mel.shape[0]/phone_encoded.shape[0]
             if hparams['debug']:
                 print(mel.shape,phone_encoded.shape,mel.shape[0]/phone_encoded.shape[0])

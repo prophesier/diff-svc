@@ -220,7 +220,7 @@ class Svc:
 
         def get_align(mel, phone_encoded):
             mel2ph = np.zeros([mel.shape[0]], int)
-            start_frame = 1
+            start_frame = 0
             ph_durs = mel.shape[0] / phone_encoded.shape[0]
             if hparams['debug']:
                 print(mel.shape, phone_encoded.shape, mel.shape[0] / phone_encoded.shape[0])
