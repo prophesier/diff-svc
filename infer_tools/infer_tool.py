@@ -59,7 +59,7 @@ def timeit(func):
 
 
 def format_wav(audio_path):
-    raw_audio, raw_sample_rate = librosa.load(audio_path, mono=True)
+    raw_audio, raw_sample_rate = librosa.load(audio_path, mono=True,sr=None)
     soundfile.write(Path(audio_path).with_suffix(".wav"), raw_audio, raw_sample_rate)
 
 
