@@ -1,5 +1,5 @@
 # Diff-SVC
-Singing Voice Conversion via diffusion model
+Singing Voice Conversion via diffusion model 
 
 ## updates:
 >2022.11.23 修复了一个重大bug，曾导致可能将用于推理的原始gt音频转变采样率为22.05kHz,对于由此造成的影响我们表示十分抱歉，请务必检查自己的测试音频，并使用更新后的代码\
