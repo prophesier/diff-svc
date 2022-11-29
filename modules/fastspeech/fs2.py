@@ -23,7 +23,7 @@ class FastSpeech2(nn.Module):
         super().__init__()
         # self.dictionary = dictionary
         self.padding_idx = 0
-        if 'no_fs2' in hparams.keys() and not hparams['no_fs2']:
+        if hparams['no_fs2'] if 'no_fs2' in hparams.keys() else True:
             self.enc_layers = hparams['enc_layers']
             self.dec_layers = hparams['dec_layers']
             self.encoder = FS_ENCODERS[hparams['encoder_type']](hparams)
@@ -95,7 +95,7 @@ class FastSpeech2(nn.Module):
                 ref_mels=None, f0=None, uv=None, energy=None, skip_decoder=True,
                 spk_embed_dur_id=None, spk_embed_f0_id=None, infer=False, **kwargs):
         ret = {}
-        if 'no_fs2' in hparams.keys() and not hparams['no_fs2']:
+        if hparams['no_fs2'] if 'no_fs2' in hparams.keys() else True:
             encoder_out =self.encoder(hubert)  # [B, T, C]
         else:
             encoder_out =hubert
@@ -146,7 +146,7 @@ class FastSpeech2(nn.Module):
             decoder_inp = decoder_inp + self.add_energy(pitch_inp, energy, ret)
 
         ret['decoder_inp'] = decoder_inp = (decoder_inp + spk_embed) * tgt_nonpadding
-        if 'no_fs2' in hparams.keys() and not hparams['no_fs2']:
+        if hparams['no_fs2'] if 'no_fs2' in hparams.keys() else True:
             if skip_decoder:
                 return ret
             ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding, ret, infer=infer, **kwargs)
