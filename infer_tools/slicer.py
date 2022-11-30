@@ -1,9 +1,6 @@
-import os.path
 import time
-from argparse import ArgumentParser
 
 import numpy as np
-import soundfile
 import torch
 import torchaudio
 from scipy.ndimage import maximum_filter1d, uniform_filter1d
@@ -107,59 +104,25 @@ class Slicer:
             split_loc_l = split_win_l + np.argmin(abs_amp[split_win_l: split_win_l + self.win_sn])
             sil_tags.append((split_loc_l, samples.shape[0]))
         if len(sil_tags) == 0:
-            return [len(audio)]
+            return {0: {"slice": False, "split_time": (0, len(audio))}}
         else:
             chunks = []
+            # 第一段静音并非从头开始，补上有声片段
+            if sil_tags[0][0]:
+                chunks.append({"slice": False, "split_time": f"0,{sil_tags[0][0]}"})
             for i in range(0, len(sil_tags)):
-                chunks.append(int((sil_tags[i][0] + sil_tags[i][1]) / 2))
-            return chunks
-
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument('audio', type=str, help='The audio to be sliced')
-    parser.add_argument('--out_name', type=str, help='Output directory of the sliced audio clips')
-    parser.add_argument('--out', type=str, help='Output directory of the sliced audio clips')
-    parser.add_argument('--db_thresh', type=float, required=False, default=-40,
-                        help='The dB threshold for silence detection')
-    parser.add_argument('--min_len', type=int, required=False, default=5000,
-                        help='The minimum milliseconds required for each sliced audio clip')
-    parser.add_argument('--win_l', type=int, required=False, default=300,
-                        help='Size of the large sliding window, presented in milliseconds')
-    parser.add_argument('--win_s', type=int, required=False, default=20,
-                        help='Size of the small sliding window, presented in milliseconds')
-    parser.add_argument('--max_sil_kept', type=int, required=False, default=500,
-                        help='The maximum silence length kept around the sliced audio, presented in milliseconds')
-    args = parser.parse_args()
-    out = args.out
-    if out is None:
-        out = os.path.dirname(os.path.abspath(args.audio))
-    audio, sr = torchaudio.load(args.audio)
-    if len(audio.shape) == 2 and audio.shape[1] >= 2:
-        audio = torch.mean(audio, dim=0).unsqueeze(0)
-    audio = audio.cpu().numpy()[0]
-
-    slicer = Slicer(
-        sr=sr,
-        db_threshold=args.db_thresh,
-        min_length=args.min_len,
-        win_l=args.win_l,
-        win_s=args.win_s,
-        max_silence_kept=args.max_sil_kept
-    )
-    chunks = slicer.slice(audio)
-    if not os.path.exists(args.out):
-        os.makedirs(args.out)
-    start = 0
-    end_id = 0
-    for i, chunk in enumerate(chunks):
-        end = chunk
-        soundfile.write(os.path.join(out, f'%s-%s.wav' % (args.out_name, str(i).zfill(2))), audio[start:end], sr)
-        start = end
-        end_id = i + 1
-    if start != len(audio):
-        soundfile.write(os.path.join(out, f'%s-%s.wav' % (args.out_name, str(end_id).zfill(2))),
-                        audio[start:len(audio)], sr)
+                # 标识有声片段（跳过第一段）
+                if i:
+                    chunks.append({"slice": False, "split_time": f"{sil_tags[i - 1][1]},{sil_tags[i][0]}"})
+                # 标识所有静音片段
+                chunks.append({"slice": True, "split_time": f"{sil_tags[i][0]},{sil_tags[i][1]}"})
+            # 最后一段静音并非结尾，补上结尾片段
+            if sil_tags[-1][1] != len(audio):
+                chunks.append({"slice": False, "split_time": f"{sil_tags[-1][1]},{len(audio)}"})
+            chunk_dict = {}
+            for i in range(len(chunks)):
+                chunk_dict[str(i)] = chunks[i]
+            return chunk_dict
 
 
 def cut(audio_path, db_thresh=-30, min_len=5000, win_l=300, win_s=20, max_sil_kept=500):
@@ -181,18 +144,15 @@ def cut(audio_path, db_thresh=-30, min_len=5000, win_l=300, win_s=20, max_sil_ke
 
 
 def chunks2audio(audio_path, chunks):
+    chunks = dict(chunks)
     audio, sr = torchaudio.load(audio_path)
     if len(audio.shape) == 2 and audio.shape[1] >= 2:
         audio = torch.mean(audio, dim=0).unsqueeze(0)
     audio = audio.cpu().numpy()[0]
-    start = 0
     result = []
-    for i, chunk in enumerate(chunks):
-        end = chunk
-        result.append(audio[start:end])
-        start = end
-    if start != len(audio):
-        result.append(audio[start:len(audio)])
+    for k, v in chunks.items():
+        tag = v["split_time"].split(",")
+        result.append((v["slice"], audio[int(tag[0]):int(tag[1])]))
     return result, sr
 
 

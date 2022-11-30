@@ -11,11 +11,11 @@ from infer_tools import slicer
 from infer_tools.infer_tool import Svc
 from utils.hparams import hparams
 
-chunks_dict = infer_tool.read_temp("./infer_tools/chunks_temp.json")
+chunks_dict = infer_tool.read_temp("./infer_tools/new_chunks_temp.json")
 
 
 def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise_step, project_name='', f_name=None,
-             file_path=None, out_path=None,**kwargs):
+             file_path=None, out_path=None, slice_db=-40,**kwargs):
     print(f'code version:2022-11-23 v2')
     use_pe = use_pe if hparams['audio_sample_rate'] == 24000 else False
     if file_path is None:
@@ -33,9 +33,9 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
         print("load chunks from temp")
         chunks = chunks_dict[wav_hash]["chunks"]
     else:
-        chunks = slicer.cut(wav_path)
+        chunks = slicer.cut(wav_path, db_thresh=slice_db)
     chunks_dict[wav_hash] = {"chunks": chunks, "time": int(time.time())}
-    infer_tool.write_temp("./infer_tools/chunks_temp.json", chunks_dict)
+    infer_tool.write_temp("./infer_tools/new_chunks_temp.json", chunks_dict)
     audio_data, audio_sr = slicer.chunks2audio(wav_path, chunks)
 
     count = 0
@@ -43,7 +43,8 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
     f0_pred = []
     audio = []
     epsilon = 0.00002
-    for data in audio_data:
+    for (slice_tag, data) in audio_data:
+        print(slice_tag, len(data))
         print(f'#=====segment start, {round(len(data) / audio_sr, 3)}s======')
         length = int(np.ceil(len(data) / audio_sr * hparams['audio_sample_rate']))
         raw_path = io.BytesIO()
