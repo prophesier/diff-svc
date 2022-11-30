@@ -346,3 +346,4 @@ wav2spec_eps: 1e-6
 weight_decay: 0
 win_size: 512
 work_dir: checkpoints/atri
+no_fs2: true
