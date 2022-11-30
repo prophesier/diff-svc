@@ -16,7 +16,7 @@ chunks_dict = infer_tool.read_temp("./infer_tools/new_chunks_temp.json")
 
 def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise_step, project_name='', f_name=None,
              file_path=None, out_path=None, slice_db=-40,**kwargs):
-    print(f'code version:2022-11-23 v2')
+    print(f'code version:2022-11-30 v2')
     use_pe = use_pe if hparams['audio_sample_rate'] == 24000 else False
     if file_path is None:
         raw_audio_path = f"./raw/{f_name}"

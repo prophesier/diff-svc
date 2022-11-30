@@ -143,6 +143,7 @@ class Svc:
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
         hubert = batch['hubert']
         ref_mels = batch["mels"]
+        energy=batch['energy']
         mel2ph = batch['mel2ph']
         batch['f0'] = batch['f0'] + (key / 12)
         batch['f0'][batch['f0']>np.log2(hparams['f0_max'])]=0
@@ -151,7 +152,7 @@ class Svc:
         @timeit
         def diff_infer():
             outputs = self.model(
-                hubert.cuda(), spk_embed=spk_embed, mel2ph=mel2ph.cuda(), f0=f0.cuda(), uv=uv.cuda(),
+                hubert.cuda(), spk_embed=spk_embed, mel2ph=mel2ph.cuda(), f0=f0.cuda(), uv=uv.cuda(),energy=energy.cuda(),
                 ref_mels=ref_mels.cuda(),
                 infer=True, **kwargs)
             return outputs
