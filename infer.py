@@ -42,7 +42,7 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
     f0_tst = []
     f0_pred = []
     audio = []
-    epsilon = 0.0002
+    epsilon = 0.00002
     for data in audio_data:
         print(f'#=====segment start, {round(len(data) / audio_sr, 3)}s======')
         length = int(np.ceil(len(data) / audio_sr * hparams['audio_sample_rate']))
