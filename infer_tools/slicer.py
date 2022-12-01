@@ -104,7 +104,7 @@ class Slicer:
             split_loc_l = split_win_l + np.argmin(abs_amp[split_win_l: split_win_l + self.win_sn])
             sil_tags.append((split_loc_l, samples.shape[0]))
         if len(sil_tags) == 0:
-            return {0: {"slice": False, "split_time": (0, len(audio))}}
+            return {"0": {"slice": False, "split_time": f"0,{len(audio)}"}}
         else:
             chunks = []
             # 第一段静音并非从头开始，补上有声片段
