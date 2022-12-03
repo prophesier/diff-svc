@@ -16,3 +16,5 @@ Winpython64-3.8.10.0dot.exe
 *.pkf
 *.wav
 *.json
+*.flac
+*.xmp

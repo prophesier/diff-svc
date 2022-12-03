@@ -156,5 +156,3 @@ def chunks2audio(audio_path, chunks):
     return result, sr
 
 
-if __name__ == '__main__':
-    main()
