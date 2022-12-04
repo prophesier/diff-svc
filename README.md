@@ -48,8 +48,9 @@ CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [y
 >目前本项目已在众多数据集进行过训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
 使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
 <img src="./ckpt.jpg" width=256/>
-For English support, you can join this discord:
-https://discord.gg/jvA5c2xzSE
+For English support, you can join this discord: 
+
+[![Discord](https://img.shields.io/discord/1044927142900809739?color=%23738ADB&label=Discord&style=for-the-badge)](https://discord.gg/jvA5c2xzSE)
 
 ## Acknowledgements
 >项目基于[diffsinger](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
