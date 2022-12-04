@@ -2,7 +2,9 @@
 Singing Voice Conversion via diffusion model
 
 ## updates:
->2022.11.23 修复了一个重大bug，曾导致可能将用于推理的原始gt音频转变采样率为22.05kHz,对于由此造成的影响我们表示十分抱歉，请务必检查自己的测试音频，并使用更新后的代码\
+>2022.12.4 44.1kHz声码器开放申请，正式提供对44.1kHz的支持\
+2022.11.28 增加了默认打开的no_fs2选项，可优化部分网络，提升训练速度、缩减模型体积，对于未来新训练的模型有效\
+2022.11.23 修复了一个重大bug，曾导致可能将用于推理的原始gt音频转变采样率为22.05kHz,对于由此造成的影响我们表示十分抱歉，请务必检查自己的测试音频，并使用更新后的代码\
 2022.11.22 修复了很多bug，其中有几个影响推理效果重大的bug\
 2022.11.20 增加对推理时多数格式的输入和保存，无需手动借助其他软件转换\
 2022.11.13 修正中断后读取模型的epoch/steps显示问题，添加f0处理的磁盘缓存，添加实时变声推理的支持文件\
@@ -46,6 +48,8 @@ CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [y
 >目前本项目已在众多数据集进行过训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
 使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
 <img src="./ckpt.jpg" width=256/>
+For English support, you can join this discord:
+https://discord.gg/jvA5c2xzSE
 
 ## Acknowledgements
 >项目基于[diffsinger](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\

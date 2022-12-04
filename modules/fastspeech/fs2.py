@@ -23,12 +23,13 @@ class FastSpeech2(nn.Module):
         super().__init__()
         # self.dictionary = dictionary
         self.padding_idx = 0
-        self.enc_layers = hparams['enc_layers']
-        self.dec_layers = hparams['dec_layers']
+        if not hparams['no_fs2'] if 'no_fs2' in hparams.keys() else True:
+            self.enc_layers = hparams['enc_layers']
+            self.dec_layers = hparams['dec_layers']
+            self.encoder = FS_ENCODERS[hparams['encoder_type']](hparams)
+            self.decoder = FS_DECODERS[hparams['decoder_type']](hparams)
         self.hidden_size = hparams['hidden_size']
         # self.encoder_embed_tokens = self.build_embedding(self.dictionary, self.hidden_size)
-        self.encoder = FS_ENCODERS[hparams['encoder_type']](hparams)
-        self.decoder = FS_DECODERS[hparams['decoder_type']](hparams)
         self.out_dims = out_dims
         if out_dims is None:
             self.out_dims = hparams['audio_num_mel_bins']
@@ -78,12 +79,12 @@ class FastSpeech2(nn.Module):
                     padding=hparams['ffn_padding'], kernel_size=hparams['predictor_kernel'])
         if hparams['use_energy_embed']:
             self.energy_embed = Embedding(256, self.hidden_size, self.padding_idx)
-            self.energy_predictor = EnergyPredictor(
-                self.hidden_size,
-                n_chans=predictor_hidden,
-                n_layers=hparams['predictor_layers'],
-                dropout_rate=hparams['predictor_dropout'], odim=1,
-                padding=hparams['ffn_padding'], kernel_size=hparams['predictor_kernel'])
+            # self.energy_predictor = EnergyPredictor(
+            #     self.hidden_size,
+            #     n_chans=predictor_hidden,
+            #     n_layers=hparams['predictor_layers'],
+            #     dropout_rate=hparams['predictor_dropout'], odim=1,
+            #     padding=hparams['ffn_padding'], kernel_size=hparams['predictor_kernel'])
 
     # def build_embedding(self, dictionary, embed_dim):
     #     num_embeddings = len(dictionary)
@@ -94,7 +95,10 @@ class FastSpeech2(nn.Module):
                 ref_mels=None, f0=None, uv=None, energy=None, skip_decoder=True,
                 spk_embed_dur_id=None, spk_embed_f0_id=None, infer=False, **kwargs):
         ret = {}
-        encoder_out =self.encoder(hubert)  # [B, T, C]
+        if not hparams['no_fs2'] if 'no_fs2' in hparams.keys() else True:
+            encoder_out =self.encoder(hubert)  # [B, T, C]
+        else:
+            encoder_out =hubert
         src_nonpadding = (hubert!=0).any(-1)[:,:,None]
 
         # add ref style embed
@@ -142,10 +146,10 @@ class FastSpeech2(nn.Module):
             decoder_inp = decoder_inp + self.add_energy(pitch_inp, energy, ret)
 
         ret['decoder_inp'] = decoder_inp = (decoder_inp + spk_embed) * tgt_nonpadding
-
-        if skip_decoder:
-            return ret
-        ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding, ret, infer=infer, **kwargs)
+        if not hparams['no_fs2'] if 'no_fs2' in hparams.keys() else True:
+            if skip_decoder:
+                return ret
+            ret['mel_out'] = self.run_decoder(decoder_inp, tgt_nonpadding, ret, infer=infer, **kwargs)
 
         return ret
 
@@ -235,9 +239,9 @@ class FastSpeech2(nn.Module):
 
     def add_energy(self,decoder_inp, energy, ret):
         decoder_inp = decoder_inp.detach() + hparams['predictor_grad'] * (decoder_inp - decoder_inp.detach())
-        ret['energy_pred'] = energy_pred = self.energy_predictor(decoder_inp)[:, :, 0]
-        if energy is None:
-            energy = energy_pred
+        ret['energy_pred'] = energy#energy_pred = self.energy_predictor(decoder_inp)[:, :, 0]
+        # if energy is None:
+        #     energy = energy_pred
         energy = torch.clamp(energy * 256 // 4, max=255).long() # energy_to_coarse
         energy_embedding = self.energy_embed(energy)
         return energy_embedding

@@ -14,7 +14,7 @@ binary_data_dir: data/binary/nyaru
 check_val_every_n_epoch: 10
 choose_test_manually: false
 clip_grad_norm: 1
-config_path: training/config.yaml
+config_path: training/config_nsf.yaml
 content_cond_steps: []
 cwt_add_f0_loss: false
 cwt_hidden_size: 128
@@ -26,7 +26,7 @@ datasets:
 debug: false
 dec_ffn_kernel_size: 9
 dec_layers: 4
-decay_steps: 30000
+decay_steps: 40000
 decoder_type: fft
 dict_dir: ''
 diff_decoder_type: wavenet
@@ -182,9 +182,10 @@ val_check_interval: 2000
 valid_num: 0
 valid_set_name: valid
 vocoder: network.vocoders.nsf_hifigan.NsfHifiGAN
-vocoder_ckpt: checkpoints/nsf_hifigan/g_00105000
+vocoder_ckpt: checkpoints/nsf_hifigan/model
 warmup_updates: 2000
 wav2spec_eps: 1e-6
 weight_decay: 0
 win_size: 2048
 work_dir: checkpoints/nyaru
+no_fs2: true

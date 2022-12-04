@@ -3,6 +3,7 @@ import json
 import os
 import time
 from io import BytesIO
+from pathlib import Path
 
 import librosa
 import numpy as np
@@ -10,7 +11,6 @@ import soundfile
 import torch
 
 import utils
-from pathlib import Path
 from modules.fastspeech.pe import PitchExtractor
 from network.diff.candidate_decoder import FFT
 from network.diff.diffusion import GaussianDiffusion
@@ -21,6 +21,9 @@ from preprocessing.hubertinfer import Hubertencoder
 from utils.hparams import hparams, set_hparams
 from utils.pitch_utils import denorm_f0, norm_interp_f0
 
+if os.path.exists("chunks_temp.json"):
+    os.remove("chunks_temp.json")
+
 
 def read_temp(file_name):
     if not os.path.exists(file_name):
@@ -28,15 +31,20 @@ def read_temp(file_name):
             f.write(json.dumps({"info": "temp_dict"}))
         return {}
     else:
-        with open(file_name, "r") as f:
-            data = f.read()
-        data_dict = json.loads(data)
-        if os.path.getsize(file_name) > 50 * 1024 * 1024:
-            f_name = file_name.split("/")[-1]
-            print(f"clean {f_name}")
-            for wav_hash in list(data_dict.keys()):
-                if int(time.time()) - int(data_dict[wav_hash]["time"]) > 14 * 24 * 3600:
-                    del data_dict[wav_hash]
+        try:
+            with open(file_name, "r") as f:
+                data = f.read()
+            data_dict = json.loads(data)
+            if os.path.getsize(file_name) > 50 * 1024 * 1024:
+                f_name = file_name.split("/")[-1]
+                print(f"clean {f_name}")
+                for wav_hash in list(data_dict.keys()):
+                    if int(time.time()) - int(data_dict[wav_hash]["time"]) > 14 * 24 * 3600:
+                        del data_dict[wav_hash]
+        except Exception as e:
+            print(e)
+            print(f"{file_name} error,auto rebuild file")
+            data_dict = {"info": "temp_dict"}
         return data_dict
 
 
@@ -135,6 +143,7 @@ class Svc:
         spk_embed = batch.get('spk_embed') if not hparams['use_spk_id'] else batch.get('spk_ids')
         hubert = batch['hubert']
         ref_mels = batch["mels"]
+        energy=batch['energy']
         mel2ph = batch['mel2ph']
         batch['f0'] = batch['f0'] + (key / 12)
         batch['f0'][batch['f0']>np.log2(hparams['f0_max'])]=0
@@ -143,7 +152,7 @@ class Svc:
         @timeit
         def diff_infer():
             outputs = self.model(
-                hubert.cuda(), spk_embed=spk_embed, mel2ph=mel2ph.cuda(), f0=f0.cuda(), uv=uv.cuda(),
+                hubert.cuda(), spk_embed=spk_embed, mel2ph=mel2ph.cuda(), f0=f0.cuda(), uv=uv.cuda(),energy=energy.cuda(),
                 ref_mels=ref_mels.cuda(),
                 infer=True, **kwargs)
             return outputs
