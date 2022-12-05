@@ -60,7 +60,7 @@ class Slicer:
     def slice(self, audio):
         samples = audio
         if samples.shape[0] <= self.min_samples:
-            return [len(audio)]
+            return {"0": {"slice": False, "split_time": f"0,{len(audio)}"}}
         # get absolute amplitudes
         abs_amp = np.abs(samples - np.mean(samples))
         # calculate local maximum with large window
