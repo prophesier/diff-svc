@@ -21,38 +21,42 @@ Singing Voice Conversion via diffusion model
 2022.10.24 支持对自定义数据集的训练，并精简代码\
 2022.10.22 完成对opencpop数据集的训练并创建仓库
 
-## 注意事项：
+## 注意事项/Notes：
 >本项目是基于学术交流目的建立，并非为生产环境准备，不对由此项目模型产生的任何声音的版权问题负责。\
 如将本仓库代码二次分发，或将由此项目产出的任何结果公开发表(包括但不限于视频网站投稿)，请注明原作者及代码来源(此仓库)。\
 如果将此项目用于任何其他企划，请提前联系并告知本仓库作者,十分感谢。\
->This repository was established based on the purpose of acadamic exchange, not for production environment. And this repository is not responsible for any copyright issues associated with the output of it.\
-If you distribute/publish either the code or the output of the model, please cite this repository.\
-If you wish to utilize this repo as part of your project, please inform the author in advance, thank you.
+>This project is established for academic exchange purposes and is not intended for production environments. We are not responsible for any copyright issues arising from the sound produced by this project's model. \
+If you redistribute the code in this repository or publicly publish any results produced by this project (including but not limited to video website submissions), please indicate the original author and source code (this repository). \
+If you use this project for any other plans, please contact and inform the author of this repository in advance. Thank you very much.
 
-## 推理：
+## 推理/inference：
 
 >查看./inference.ipynb
 
 
-## 预处理:
+## 预处理/preprocessing:
 ```
 export PYTHONPATH=.
 CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config.yaml
 ```
-## 训练:
+## 训练/training:
 ```
 CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [your project name] --reset 
 ```
-详细训练过程和各种参数介绍请查看[推理与训练说明](./doc/train_and_inference.markdown)
-### 已训练模型
+详细训练过程和各种参数介绍请查看[推理与训练说明](./doc/train_and_inference.markdown)\
+Please refer to the [Inference and Training Instructions](./doc/training_and_inference_EN.markdown) for a detailed training process and introduction to various parameters.Thank you for the translation provided by @ρoem.
+### 已训练模型/trained models
 >目前本项目已在众多数据集进行过训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
 使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
-<img src="./ckpt.jpg" width=256/>
+This project has been trained and tested on many datasets. You can download the ckpt files, demo audio, and other files required for inference and training in the QQ channel below by using QQ to scan this QR code (if you cannot join, please try a suitable network environment).\
+<img src="./ckpt.jpg" width=256/>\
 For English support, you can join this discord: 
 
 [![Discord](https://img.shields.io/discord/1044927142900809739?color=%23738ADB&label=Discord&style=for-the-badge)](https://discord.gg/jvA5c2xzSE)
 
 ## Acknowledgements
 >项目基于[diffsinger](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
-同时也十分感谢openvpi成员在开发训练过程中给予的帮助。
->注意：此项目与同名论文[DiffSVC](https://arxiv.org/abs/2105.13871)无任何联系，请勿混淆！
+同时也十分感谢openvpi成员在开发训练过程中给予的帮助。\
+This project is based on [diffsinger](https://github.com/MoonInTheRiver/DiffSinger), [diffsinger (openvpi maintenance version)](https://github.com/openvpi/DiffSinger), and [soft-vc](https://github.com/bshall/soft-vc). We would also like to thank the openvpi members for their help during the development and training process. 
+>注意：此项目与同名论文[DiffSVC](https://arxiv.org/abs/2105.13871)无任何联系，请勿混淆！\
+Note: This project has no connection with the paper of the same name [DiffSVC](https://arxiv.org/abs/2105.13871), please do not confuse them!
