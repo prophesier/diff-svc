@@ -47,7 +47,7 @@ CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name [y
 Please refer to the [Inference and Training Instructions](./doc/training_and_inference_EN.markdown) for a detailed training process and introduction to various parameters.Thank you for the translation provided by @ρoem.
 ### 已训练模型/trained models
 >目前本项目已在众多数据集进行过训练和测试。部分ckpt文件、demo音频和推理训练所需的其他文件请在下方QQ频道内下载\
-使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):
+使用QQ扫描此二维码(如不能加入，请尝试一个合适的网络环境):\
 This project has been trained and tested on many datasets. You can download the ckpt files, demo audio, and other files required for inference and training in the QQ channel below by using QQ to scan this QR code (if you cannot join, please try a suitable network environment).\
 <img src="./ckpt.jpg" width=256/>\
 For English support, you can join this discord: 
@@ -57,6 +57,6 @@ For English support, you can join this discord:
 ## Acknowledgements
 >项目基于[diffsinger](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
 同时也十分感谢openvpi成员在开发训练过程中给予的帮助。\
-This project is based on [diffsinger](https://github.com/MoonInTheRiver/DiffSinger), [diffsinger (openvpi maintenance version)](https://github.com/openvpi/DiffSinger), and [soft-vc](https://github.com/bshall/soft-vc). We would also like to thank the openvpi members for their help during the development and training process. 
+This project is based on [diffsinger](https://github.com/MoonInTheRiver/DiffSinger), [diffsinger (openvpi maintenance version)](https://github.com/openvpi/DiffSinger), and [soft-vc](https://github.com/bshall/soft-vc). We would also like to thank the openvpi members for their help during the development and training process. \
 >注意：此项目与同名论文[DiffSVC](https://arxiv.org/abs/2105.13871)无任何联系，请勿混淆！\
 Note: This project has no connection with the paper of the same name [DiffSVC](https://arxiv.org/abs/2105.13871), please do not confuse them!
