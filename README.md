@@ -54,7 +54,17 @@ For English support, you can join this discord:
 
 [![Discord](https://img.shields.io/discord/1044927142900809739?color=%23738ADB&label=Discord&style=for-the-badge)](https://discord.gg/jvA5c2xzSE)
 
-## Acknowledgements
+## 底模/Pre-trained model
+
+如果你的数据集实在太短了或者音域不够，可以试试使用[底模](https://huggingface.co/HuanLin/DiffSVCBaseModel)来补齐短板 
+
+> 注: 底模与Diff-SVC作者无关 请勿将底模产生的任何纠纷反馈给Diff-SVC作者
+
+If your dataset is too short or the vocal range is not enough, you can try using this [pre trained model](https://huggingface.co/HuanLin/DiffSVCBaseModel) to make up for the shortcomings
+
+> Note: The pre trained model is not related to the Diff-SVC author Please do not report any disputes arising from the bottom mold to the Diff-SVC author
+
+## 致谢/Acknowledgements
 >项目基于[diffsinger](https://github.com/MoonInTheRiver/DiffSinger)、[diffsinger(openvpi维护版)](https://github.com/openvpi/DiffSinger)、[soft-vc](https://github.com/bshall/soft-vc)开发.\
 同时也十分感谢openvpi成员在开发训练过程中给予的帮助。\
 This project is based on [diffsinger](https://github.com/MoonInTheRiver/DiffSinger), [diffsinger (openvpi maintenance version)](https://github.com/openvpi/DiffSinger), and [soft-vc](https://github.com/bshall/soft-vc). We would also like to thank the openvpi members for their help during the development and training process. \
