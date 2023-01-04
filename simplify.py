@@ -4,7 +4,7 @@ import torch
 
 
 def simplify_pth(pth_name, project_name):
-    model_path = f'./checkpoints/{project_name}'
+    model_path = f'./ckpts/{project_name}'
     checkpoint_dict = torch.load(f'{model_path}/{pth_name}')
     torch.save({'epoch': checkpoint_dict['epoch'],
                 'state_dict': checkpoint_dict['state_dict'],

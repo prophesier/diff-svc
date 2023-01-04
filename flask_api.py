@@ -41,8 +41,8 @@ def voice_change_model():
 if __name__ == '__main__':
     # 工程文件夹名，训练时用的那个
     project_name = "firefox"
-    model_path = f'./checkpoints/{project_name}/model_ckpt_steps_188000.ckpt'
-    config_path = f'./checkpoints/{project_name}/config.yaml'
+    model_path = f'./ckpts/{project_name}/model_ckpt_steps_188000.ckpt'
+    config_path = f'./ckpts/{project_name}/config.yaml'
 
     # 加速倍数
     accelerate = 50

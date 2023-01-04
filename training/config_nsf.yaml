@@ -60,7 +60,7 @@ gen_dir_name: ''
 gen_tgt_spk_id: -1
 hidden_size: 256
 hop_size: 512
-hubert_path: checkpoints/hubert/hubert_soft.pt
+hubert_path: ckpts/hubert/hubert_soft.pt
 hubert_gpu: true
 infer: false
 keep_bins: 128
@@ -98,7 +98,7 @@ num_valid_plots: 10
 optimizer_adam_beta1: 0.9
 optimizer_adam_beta2: 0.98
 out_wav_norm: false
-pe_ckpt: checkpoints/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
+pe_ckpt: ckpts/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
 pe_enable: false
 perform_enhance: true
 pitch_ar: false
@@ -182,10 +182,10 @@ val_check_interval: 2000
 valid_num: 0
 valid_set_name: valid
 vocoder: network.vocoders.nsf_hifigan.NsfHifiGAN
-vocoder_ckpt: checkpoints/nsf_hifigan/model
+vocoder_ckpt: ckpts/nsf_hifigan/model
 warmup_updates: 2000
 wav2spec_eps: 1e-6
 weight_decay: 0
 win_size: 2048
-work_dir: checkpoints/nyaru
+work_dir: ckpts/nyaru
 no_fs2: true

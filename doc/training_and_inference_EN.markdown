@@ -1,7 +1,7 @@
 # Diff-SVC(train/inference by yourself)
 ## 0. Setting up the environment
->Notice: The requirements files have been updated, and there are now three versions to choose from. 
- 
+>Notice: The requirements files have been updated, and there are now three versions to choose from.
+
 1. requirements.txt contains the entire environment during development and testing. It includes Torch1.12.1+cu113, and you can use pip to install it directly or remove the packages related to PyTorch inside (torch/torchvision) and then use pip to install it and use your own torch environment.
     ```
     pip install -r requirements.txt
@@ -17,32 +17,32 @@
 Edit the parameters below in the first block:
 ```
 config_path= 'location of config.yaml in the checkpoints archive'
-# E.g.: './checkpoints/nyaru/config.yaml'
+# E.g.: './ckpts/nyaru/config.yaml'
 # The config and checkpoints are one-to-one correspondences. Please do not use other config files.
 
 project_name='name of the current project'
 # E.g.: 'nyaru'
 
 model_path='full path to the ckpt file'
-# E.g.: './checkpoints/nyaru/model_ckpt_steps_112000.ckpt'
+# E.g.: './ckpts/nyaru/model_ckpt_steps_112000.ckpt'
 
 hubert_gpu=True
-# Whether or not to use GPU for HuBERT (a module in the model) during inference. It will not affect any other parts of the model.  
+# Whether or not to use GPU for HuBERT (a module in the model) during inference. It will not affect any other parts of the model.
 # The current version significantly reduces the GPU usage for inferencing the HuBERT module. As full inference can be made on a 1060 6G GPU, there is no need to turn it off.
 # Also, auto-slice of long audio is now supported (both inference.ipynb and infer.py support this). Audio longer than 30 seconds will be automatically sliced at silences, thanks to @IceKyrin's code.
 ```
 ### Adjustable parameters：
 ```
-wav_fn='xxx.wav'  
+wav_fn='xxx.wav'
 # The path to the input audio. The default path is in the project's root directory.
 
-use_crepe=True  
+use_crepe=True
 # CREPE is an F0 extraction algorithm. It has good performance but is slow. Changing this to False will use the slightly inferior but much faster Parselmouth algorithm.
 
-thre=0.05  
+thre=0.05
 # CREPE's noise filtering threshold. It can be increased if the input audio is clean, but if the input audio is noisy, keep this value or decrease it. This parameter will have no effect if the previous parameter is set to False.
 
-pndm_speedup=20  
+pndm_speedup=20
 # Inference acceleration multiplier. The default number of diffusion steps is 1000, so changing this value to 10 means synthesizing in 100 steps. The default, 20, is a moderate value. This value can go up to 50x (synthesizing in 20 steps) without obvious loss in quality, but any higher may result in a significant quality loss. Note: if use_gt_mel below is enabled, make sure this value is lower than add_noise_step. This value should also be divisible by the number of diffusion steps.
 
 key=0
@@ -50,7 +50,7 @@ key=0
 
 use_pe=True
 # F0 extraction algorithm for synthesizing audio from the Mel spectrogram. Changing this to False will use the input audio's F0.
-# There is a slight difference in results between using True and False. Usually, setting it to True is better, but not always. It has almost no effect on the synthesizing speed. 
+# There is a slight difference in results between using True and False. Usually, setting it to True is better, but not always. It has almost no effect on the synthesizing speed.
 # (Regardless of what the value of the key parameter is, this value is always changeable and does not affect it)
 # This function is not supported in 44.1kHz models and will be turned off automatically. Leaving it on will not cause any errors as well.
 
@@ -63,7 +63,7 @@ add_noise_step=500
 
 
 wav_gen='yyy.wav'
-# The path to the output audio. The default is in the project's root directory. The file type can be changed by changing the file extension here. 
+# The path to the output audio. The default is in the project's root directory. The file type can be changed by changing the file extension here.
 ```
 
 If using infer.py, the way to change parameters is similar. Change values inside `__name__=='__main__'`, then run `python infer.py` in the project's root directory.
@@ -102,7 +102,7 @@ test_prefixes:
 endless_ds:False
 # If your dataset is too small, each epoch will pass very fast. Setting this to True will treat 1000 epochs as a single one.
 
-hubert_path: checkpoints/hubert/hubert.pt
+hubert_path: ckpts/hubert/hubert.pt
 # The path to the HuBERT model, make sure this path is correct. In most cases, the decompressed checkpoints.zip archive would put the model under the right path, so no edits are needed. The torch version is now used for inference.
 
 hubert_gpu:True
@@ -122,7 +122,7 @@ max_sentences: 88
 max_tokens: 128000
 # The batch size is calculated dynamically based on these parameters. If unsure about their exact meaning, you can change the max_sentences parameter only, which sets the maximum limit for the batch size to avoid exceeding VRAM limits.
 
-pe_ckpt: checkpoints/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
+pe_ckpt: ckpts/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
 # Path to the pe model. Make sure this file exists. Refer to the inference section for its purpose.
 
 raw_data_dir: data/raw/nyaru
@@ -130,7 +130,7 @@ raw_data_dir: data/raw/nyaru
 
 residual_channels: 384
 residual_layers: 20
-# A group of parameters that control the core network size. The higher the values, the more parameters the network has and the slower it trains, but this does not necessarily lead to better results. For larger datasets, you can change the first parameter to 512. You can experiment with them on your own. However, it is best to leave them as they are if you are not sure what you are doing. 
+# A group of parameters that control the core network size. The higher the values, the more parameters the network has and the slower it trains, but this does not necessarily lead to better results. For larger datasets, you can change the first parameter to 512. You can experiment with them on your own. However, it is best to leave them as they are if you are not sure what you are doing.
 
 speaker_id: nyaru
 # The name of the target speaker. Currently, only single-speaker is supported. (This parameter is for reference only and has no functional impact)
@@ -141,17 +141,17 @@ use_crepe: true
 val_check_interval: 2000
 # Inference on the test set and save checkpoints every 2000 steps.
 
-vocoder_ckpt:checkpoints/0109_hifigan_bigpopcs_hop128
+vocoder_ckpt: ckpts/0109_hifigan_bigpopcs_hop128
 # For 24kHz models, this should be the path to the directory of the corresponding vocoder. For 44.1kHz models, this should be the path to the corresponding vocoder file itself. Be careful, do not put the wrong one.
 
-work_dir: checkpoints/nyaru
+work_dir: ckpts/nyaru
 # Change the last part to the project name. (Or it can also be deleted or left completely empty to generate this directory automatically, but do not put some random names)
 
 no_fs2: true
 # Simplification of the network encoder. It can reduce the model size and speed up training. No direct evidence of damage to the network performance has been found so far. Enabled by default.
 
 ```
-> Do not edit the other parameters if you do not know that they do, even if you think you may know by judging from their names. 
+> Do not edit the other parameters if you do not know that they do, even if you think you may know by judging from their names.
 
 ### 2.3 Data pre-processing
 Run the following commands under the diff-svc directory: \
@@ -172,14 +172,14 @@ For pre-processing, @IceKyrin has prepared a code for processing HuBERT and othe
 #windows
 ```
 set CUDA_VISIBLE_DEVICES=0
-python run.py --config training/config.yaml --exp_name nyaru --reset 
+python run.py --config training/config.yaml --exp_name nyaru --reset
 ```
 #linux
 ```
 CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name nyaru --reset
 ```
 >You need to change `exp_name` to your project name and edit the config path. Please make sure that the config file used for training is the same as the one used for pre-processing.\
-*Important*: After finishing training (on the cloud), if you did not pre-process the data locally, you will need to download the corresponding ckpt file AND the config file for inference. Do not use the one on your local machine since pre-processing writes data into the config file. Make sure the config file used for inference is the same as the one from pre-processing. 
+*Important*: After finishing training (on the cloud), if you did not pre-process the data locally, you will need to download the corresponding ckpt file AND the config file for inference. Do not use the one on your local machine since pre-processing writes data into the config file. Make sure the config file used for inference is the same as the one from pre-processing.
 
 ### 2.5 Possible issues：
 
@@ -216,4 +216,3 @@ Check if `use_crepe` is enabled in config. Turning it off can significantly incr
 Check if `hubert_gpu` is enabled in config.
 
 If there are any other questions, feel free to join the QQ channel or Discord server to ask.
-

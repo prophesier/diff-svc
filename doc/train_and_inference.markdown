@@ -16,14 +16,14 @@ pip install -r requirements_short.txt
 在第一个block中修改如下参数：
 ```
 config_path='checkpoints压缩包中config.yaml的位置'
-如'./checkpoints/nyaru/config.yaml'
+如'./ckpts/nyaru/config.yaml'
 config和checkpoints是一一对应的，请不要使用其他config
 
 project_name='这个项目的名称'
 如'nyaru'
 
 model_path='ckpt文件的全路径'
-如'./checkpoints/nyaru/model_ckpt_steps_112000.ckpt'
+如'./ckpts/nyaru/model_ckpt_steps_112000.ckpt'
 
 hubert_gpu=True
 推理时是否使用gpu推理hubert(模型中的一个模块)，不影响模型的其他部分
@@ -35,7 +35,7 @@ hubert_gpu=True
 ```
 wav_fn='xxx.wav'#传入音频的路径，默认在项目根目录中
 
-use_crepe=True 
+use_crepe=True
 #crepe是一个F0算法，效果好但速度慢，改成False会使用效果稍逊于crepe但较快的parselmouth算法
 
 thre=0.05
@@ -98,7 +98,7 @@ test_prefixes:
 endless_ds:False
 如果你的数据集过小，每个epoch时间很短，请将此项打开，将把正常的1000epoch作为一个epoch计算
 
-hubert_path: checkpoints/hubert/hubert.pt
+hubert_path: ckpts/hubert/hubert.pt
 hubert模型的存放地址，确保这个路径是对的，一般解压checkpoints包之后就是这个路径不需要改,现已使用torch版本推理
 hubert_gpu:True
 是否在预处理时使用gpu运行hubert(模型的一个模块)，关闭后使用cpu，但耗时会显著增加。另外模型训练完推理时hubert是否用gpu是在inference中单独控制的，不受此处影响。目前hubert改为torch版后已经可以做到在1060 6G显存gpu上进行预处理，与直接推理1分钟内的音频不超出显存限制，一般不需要关了。
@@ -117,7 +117,7 @@ max_sentences: 88
 max_tokens: 128000
 #batchsize是由这几个参数动态算出来的，如果不太清楚具体含义，可以只改动max_sentences这个参数，填入batchsize的最大限制值，以免炸显存
 
-pe_ckpt: checkpoints/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
+pe_ckpt: ckpts/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
 #pe模型路径，确保这个文件存在，具体作用参考inference部分
 
 raw_data_dir: data/raw/nyaru
@@ -136,10 +136,10 @@ use_crepe: true
 val_check_interval: 2000
 #每2000steps推理测试集并保存ckpt
 
-vocoder_ckpt:checkpoints/0109_hifigan_bigpopcs_hop128
+vocoder_ckpt: ckpts/0109_hifigan_bigpopcs_hop128
 #24kHz下为对应声码器的目录, 44.1kHz下为对应声码器的文件名, 注意不要填错
 
-work_dir: checkpoints/nyaru
+work_dir: ckpts/nyaru
 #修改后缀为工程名(也可以删掉或完全留空自动生成，但别乱填)
 no_fs2: true
 #对网络encoder的精简，能缩减模型体积，加快训练，且并未发现有对网络表现损害的直接证据。默认打开
@@ -152,7 +152,7 @@ no_fs2: true
 #windows
 ```
 set PYTHONPATH=.
-set CUDA_VISIBLE_DEVICES=0 
+set CUDA_VISIBLE_DEVICES=0
 python preprocessing/binarize.py --config training/config.yaml
 ```
 #linux
@@ -165,12 +165,12 @@ CUDA_VISIBLE_DEVICES=0 python preprocessing/binarize.py --config training/config
 ### 2.4 训练
 #windows
 ```
-set CUDA_VISIBLE_DEVICES=0 
-python run.py --config training/config.yaml --exp_name nyaru --reset  
+set CUDA_VISIBLE_DEVICES=0
+python run.py --config training/config.yaml --exp_name nyaru --reset
 ```
 #linux
 ```
-CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name nyaru --reset 
+CUDA_VISIBLE_DEVICES=0 python run.py --config training/config.yaml --exp_name nyaru --reset
 ```
 >需要将exp_name改为你的工程名，并修改config路径，请确保和预处理使用的是同一个config文件\
 *重要* ：训练完成后，若之前不是在本地数据预处理，除了需要下载对应的ckpt文件，也需要将config文件下载下来，作为推理时使用的config，不可以使用本地之前上传上去那份。因为预处理时会向config文件中写入内容。推理时要保持使用的config和预处理使用的config是同一份。
