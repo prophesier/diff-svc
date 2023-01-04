@@ -46,7 +46,7 @@ def set_hparams(config='', exp_name='', hparams_str='', print_hparams=True, glob
     args_work_dir = ''
     if args.exp_name != '':
         args.work_dir = args.exp_name
-        args_work_dir = f'checkpoints/{args.work_dir}'
+        args_work_dir = f'ckpts/{args.work_dir}'
 
     config_chains = []
     loaded_config = set()
@@ -74,7 +74,7 @@ def set_hparams(config='', exp_name='', hparams_str='', print_hparams=True, glob
     global hparams
     assert args.config != '' or args_work_dir != ''
     saved_hparams = {}
-    if args_work_dir != 'checkpoints/':
+    if args_work_dir != 'ckpts/':
         ckpt_config_path = f'{args_work_dir}/config.yaml'
         if os.path.exists(ckpt_config_path):
             try:
@@ -88,7 +88,7 @@ def set_hparams(config='', exp_name='', hparams_str='', print_hparams=True, glob
     hparams_ = {}
 
     hparams_.update(load_config(args.config))
-    
+
     if not args.reset:
         hparams_.update(saved_hparams)
     hparams_['work_dir'] = args_work_dir

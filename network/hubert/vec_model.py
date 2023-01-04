@@ -46,7 +46,7 @@ def get_vec_units(con_model, audio_path, dev):
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "../../checkpoints/checkpoint_best_legacy_500.pt"  # checkpoint_best_legacy_500.pt
+    model_path = "../../ckpts/checkpoint_best_legacy_500.pt"  # checkpoint_best_legacy_500.pt
     vec_model = load_model(model_path)
     # 这个不用改，自动在根目录下所有wav的同文件夹生成其对应的npy
     file_lists = list(Path("../../data/vecfox").rglob('*.wav'))

@@ -61,7 +61,7 @@ gen_tgt_spk_id: -1
 hidden_size: 256
 hop_size: 128
 hubert_gpu: true
-hubert_path: checkpoints/hubert/hubert_soft.pt
+hubert_path: ckpts/hubert/hubert_soft.pt
 infer: false
 keep_bins: 80
 lambda_commit: 0.25
@@ -98,7 +98,7 @@ num_valid_plots: 10
 optimizer_adam_beta1: 0.9
 optimizer_adam_beta2: 0.98
 out_wav_norm: false
-pe_ckpt: checkpoints/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
+pe_ckpt: ckpts/0102_xiaoma_pe/model_ckpt_steps_60000.ckpt
 pe_enable: false
 perform_enhance: true
 pitch_ar: false
@@ -340,10 +340,10 @@ val_check_interval: 2000
 valid_num: 0
 valid_set_name: valid
 vocoder: network.vocoders.hifigan.HifiGAN
-vocoder_ckpt: checkpoints/0109_hifigan_bigpopcs_hop128
+vocoder_ckpt: ckpts/0109_hifigan_bigpopcs_hop128
 warmup_updates: 2000
 wav2spec_eps: 1e-6
 weight_decay: 0
 win_size: 512
-work_dir: checkpoints/atri
+work_dir: ckpts/atri
 no_fs2: true

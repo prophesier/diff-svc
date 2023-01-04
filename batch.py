@@ -18,8 +18,8 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
 if __name__ == '__main__':
     # 工程文件夹名，训练时用的那个
     project_name = "firefox"
-    model_path = f'./checkpoints/{project_name}/clean_model_ckpt_steps_100000.ckpt'
-    config_path = f'./checkpoints/{project_name}/config.yaml'
+    model_path = f'./ckpts/{project_name}/clean_model_ckpt_steps_100000.ckpt'
+    config_path = f'./ckpts/{project_name}/config.yaml'
 
     # 支持多个wav/ogg文件，放在raw文件夹下，带扩展名
     file_names = infer_tool.get_end_file("./batch", "wav")

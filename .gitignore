@@ -9,6 +9,7 @@ infer_out/
 *.onnx
 data/
 checkpoints/
+ckpts/
 processcmd.py
 .vscode
 WPy64-38100
