@@ -84,15 +84,50 @@ if __name__ == '__main__':
     accelerate = 20
     hubert_gpu = True
     format='flac'
-    step = int(model_path.split("_")[-1].split(".")[0])
+
+    use_crepe = True
+    thre = 0.05
+    use_pe = True
+    use_gt_mel = False
+    add_noise_step = 500
+
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--project_name", type=str, default=project_name)
+    parser.add_argument("--model_path", type=str, default=model_path)
+    parser.add_argument("--config_path", type=str, default=config_path) 
+    parser.add_argument("--file_names", nargs="+", type=str, default=file_names)
+    parser.add_argument("--trans", nargs="+", type=int, default=trans)
+    parser.add_argument("--accelerate", type=int, default=accelerate)
+    parser.add_argument("--hubert_gpu", action="store_true", default=hubert_gpu)
+    parser.add_argument("--format", type=str, default=format)
+    parser.add_argument("--use_crepe", action="store_true", default=use_crepe)
+    parser.add_argument("--thre", type=float, default=thre)
+    parser.add_argument("--use_pe", action="store_true", default=use_pe)
+    parser.add_argument("--use_gt_mel", action="store_true", default=use_gt_mel)
+    parser.add_argument("--add_noise_step", type=int, default=add_noise_step)
+    args, _ = parser.parse_known_args()
+
+    step = int(args.model_path.split("_")[-1].split(".")[0])
 
     # 下面不动
     infer_tool.mkdir(["./raw", "./results"])
-    infer_tool.fill_a_to_b(trans, file_names)
+    infer_tool.fill_a_to_b(args.trans, args.file_names)
 
-    model = Svc(project_name, config_path, hubert_gpu, model_path)
-    for f_name, tran in zip(file_names, trans):
+    model = Svc(args.project_name, args.config_path, args.hubert_gpu, args.model_path)
+    for f_name, tran in zip(args.file_names, args.trans):
         if "." not in f_name:
             f_name += ".wav"
-        run_clip(model, key=tran, acc=accelerate, use_crepe=True, thre=0.05, use_pe=True, use_gt_mel=False,
-                 add_noise_step=500, f_name=f_name, project_name=project_name, format=format)
+        run_clip(
+            model,
+            key=tran,
+            acc=args.accelerate,
+            use_crepe=args.use_crepe,
+            thre=args.thre,
+            use_pe=args.use_pe,
+            use_gt_mel=args.use_gt_mel,
+            add_noise_step=args.add_noise_step,
+            f_name=f_name,
+            project_name=args.project_name,
+            format=args.format,
+        )
