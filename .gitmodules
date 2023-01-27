@@ -1,0 +1,3 @@
+[submodule "Diff-SVC-Tools"]
+	path = Diff-SVC-Tools
+	url = https://github.com/Kor-SVS/Diff-SVC-Tools.git
