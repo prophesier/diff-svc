@@ -1,5 +1,5 @@
 torchcrepe
-praat-parselmouth==0.4.1
+praat-parselmouth
 scikit-image
 ipython
 ipykernel
@@ -8,5 +8,6 @@ webrtcvad-wheels
 h5py
 einops
 pycwt
-torchmetrics==0.5
-pytorch_lightning==1.3.3
+torchmetrics
+pytorch_lightning
+pyyaml

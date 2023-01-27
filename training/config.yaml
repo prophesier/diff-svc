@@ -60,7 +60,7 @@ gen_dir_name: ''
 gen_tgt_spk_id: -1
 hidden_size: 256
 hop_size: 128
-hubert_gpu: true
+hubert_gpu: True
 hubert_path: checkpoints/hubert/hubert_soft.pt
 infer: false
 keep_bins: 80
@@ -129,7 +129,7 @@ prenet_hidden_size: 256
 pretrain_fs_ckpt: ''
 processed_data_dir: xxx
 profile_infer: false
-raw_data_dir: data/raw/atri
+raw_data_dir: data/raw/test
 ref_norm_layer: bn
 rel_pos: true
 reset_phone_dict: true
@@ -147,7 +147,7 @@ save_gt: false
 schedule_type: linear
 seed: 1234
 sort_by_len: true
-speaker_id: atri
+speaker_id: test
 spec_max:
 - -1.5451143980026245
 - -1.5177826881408691
