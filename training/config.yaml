@@ -1,3 +1,14 @@
+# setting for users
+## original wav dataset folder
+raw_data_dir: data/raw/test
+## after binarized dataset folder
+binary_data_dir: data/binary/atri
+## speaker name
+speaker_id: test
+## trained model will be save this folder
+work_dir: checkpoints/atri
+
+# setting for developers and advanced users
 K_step: 1000
 accumulate_grad_batches: 1
 audio_num_mel_bins: 80
@@ -10,7 +21,6 @@ binarization_args:
   with_spk_embed: false
   with_wav: false
 binarizer_cls: preprocessing.SVCpre.SVCBinarizer
-binary_data_dir: data/binary/atri
 check_val_every_n_epoch: 10
 choose_test_manually: false
 clip_grad_norm: 1
@@ -129,7 +139,6 @@ prenet_hidden_size: 256
 pretrain_fs_ckpt: ''
 processed_data_dir: xxx
 profile_infer: false
-raw_data_dir: data/raw/test
 ref_norm_layer: bn
 rel_pos: true
 reset_phone_dict: true
@@ -147,7 +156,6 @@ save_gt: false
 schedule_type: linear
 seed: 1234
 sort_by_len: true
-speaker_id: test
 spec_max:
 - -1.5451143980026245
 - -1.5177826881408691
@@ -345,5 +353,4 @@ warmup_updates: 2000
 wav2spec_eps: 1e-6
 weight_decay: 0
 win_size: 512
-work_dir: checkpoints/atri
 no_fs2: true
