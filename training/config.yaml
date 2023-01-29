@@ -2,11 +2,13 @@
 ## original wav dataset folder
 raw_data_dir: data/raw/test
 ## after binarized dataset folder
-binary_data_dir: data/binary/atri
+binary_data_dir: data/binary/test
 ## speaker name
 speaker_id: test
 ## trained model will be save this folder
-work_dir: checkpoints/atri
+work_dir: checkpoints/test
+## batch size
+max_sentences: 10
 
 # setting for developers and advanced users
 K_step: 1000
@@ -91,7 +93,6 @@ max_eval_sentences: 1
 max_eval_tokens: 60000
 max_frames: 42000
 max_input_tokens: 60000
-max_sentences: 88
 max_tokens: 128000
 max_updates: 1000000
 mel_loss: ssim:0.5|l1:0.5

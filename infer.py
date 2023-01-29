@@ -72,21 +72,26 @@ def run_clip(svc_model, key, acc, use_pe, use_crepe, thre, use_gt_mel, add_noise
 
 
 if __name__ == '__main__':
-    # 工程文件夹名，训练时用的那个
-    project_name = "yilanqiu"
-    model_path = f'./checkpoints/{project_name}/model_ckpt_steps_246000.ckpt'
+    # Project folder name used for training
+    project_name = "test"
+    model_path = f'./checkpoints/{project_name}/model_ckpt_steps_246000.ckpt' # change ckpt file name to your best ckpt file name
     config_path = f'./checkpoints/{project_name}/config.yaml'
 
-    # 支持多个wav/ogg文件，放在raw文件夹下，带扩展名
-    file_names = ["青花瓷.wav"]
-    trans = [0]  # 音高调整，支持正负（半音），数量与上一行对应，不足的自动按第一个移调参数补齐
-    # 加速倍数
+    # Support multiple wav/ogg files, put them in the raw folder, with extension
+    file_names = ["test.wav"]
+    trans = [0] # Pitch adjustment, 
+                # support positive and negative (semitones), 
+                # the number corresponds to the previous line, 
+                # if it is insufficient,
+                # it will be filled automatically according to the first transpose parameter
+
+    # Acceleration factor
     accelerate = 20
     hubert_gpu = True
     format='flac'
     step = int(model_path.split("_")[-1].split(".")[0])
 
-    # 下面不动
+    # don't move below
     infer_tool.mkdir(["./raw", "./results"])
     infer_tool.fill_a_to_b(trans, file_names)
 
