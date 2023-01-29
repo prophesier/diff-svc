@@ -216,7 +216,9 @@ class BaseTask(nn.Module):
                               max_updates=hparams['max_updates'],
                               num_sanity_val_steps=hparams['num_sanity_val_steps'] if not hparams[
                                   'validate'] else 10000,
-                              accumulate_grad_batches=hparams['accumulate_grad_batches'])
+                              accumulate_grad_batches=hparams['accumulate_grad_batches'],
+                              use_amp=hparams['use_amp']
+                              )
         if not hparams['infer']:  # train
             # copy_code = input(f'{hparams["save_codes"]} code backup? y/n: ') == 'y'
             # copy_code = True # backup code every time

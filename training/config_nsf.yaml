@@ -189,3 +189,4 @@ weight_decay: 0
 win_size: 2048
 work_dir: checkpoints/nyaru
 no_fs2: true
+use_amp: false

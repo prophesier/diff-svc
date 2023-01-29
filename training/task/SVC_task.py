@@ -116,10 +116,14 @@ class SVCTask(FastSpeech2Task):
     def build_scheduler(self, optimizer):
         return torch.optim.lr_scheduler.StepLR(optimizer, hparams['decay_steps'], gamma=0.5)
 
-    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx):
+    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx,use_amp,scaler):
         if optimizer is None:
             return
-        optimizer.step()
+        if use_amp:
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            optimizer.step()
         optimizer.zero_grad()
         if self.scheduler is not None:
             self.scheduler.step(self.global_step // hparams['accumulate_grad_batches'])

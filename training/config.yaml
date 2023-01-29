@@ -347,3 +347,4 @@ weight_decay: 0
 win_size: 512
 work_dir: checkpoints/atri
 no_fs2: true
+use_amp: false

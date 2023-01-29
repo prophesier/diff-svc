@@ -27,6 +27,8 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 import tqdm
 from torch.optim.optimizer import Optimizer
+from torch.cuda.amp import autocast, GradScaler
+import contextlib
 
 
 def get_a_var(obj):  # pragma: no cover
@@ -380,6 +382,7 @@ class BaseTrainer:
             weights_summary='full',
             num_sanity_val_steps=5,
             resume_from_checkpoint=None,
+            use_amp=False
     ):
         self.log_gpu_memory = log_gpu_memory
         self.gradient_clip_val = gradient_clip_val
@@ -459,7 +462,10 @@ class BaseTrainer:
         self.logger = logger
         self.logger.rank = 0
         self.row_log_interval = row_log_interval
-
+        self.scaler = None
+        if self.use_amp:
+            self.scaler = torch.cuda.amp.GradScaler()
+        self.use_amp = use_amp
     @property
     def num_gpus(self):
         gpus = self.data_parallel_device_ids
@@ -1482,37 +1488,41 @@ class BaseTrainer:
                 # wrap the forward step in a closure so second order methods work
                 def optimizer_closure():
                     # forward pass
-                    output = self.training_forward(
-                        split_batch, batch_idx, opt_idx, self.hiddens)
+                    with torch.cuda.amp.autocast() if self.use_amp else contextlib.suppress():
+                        output = self.training_forward(
+                            split_batch, batch_idx, opt_idx, self.hiddens)
 
-                    closure_loss = output[0]
-                    progress_bar_metrics = output[1]
-                    log_metrics = output[2]
-                    callback_metrics = output[3]
-                    self.hiddens = output[4]
-                    if closure_loss is None:
-                        return None
+                        closure_loss = output[0]
+                        progress_bar_metrics = output[1]
+                        log_metrics = output[2]
+                        callback_metrics = output[3]
+                        self.hiddens = output[4]
+                        if closure_loss is None:
+                            return None
 
-                    # accumulate loss
-                    # (if accumulate_grad_batches = 1 no effect)
-                    closure_loss = closure_loss / self.accumulate_grad_batches
+                        # accumulate loss
+                        # (if accumulate_grad_batches = 1 no effect)
+                        closure_loss = closure_loss / self.accumulate_grad_batches
 
-                    # backward pass
-                    model_ref = self.get_model()
-                    if closure_loss.requires_grad:
-                        model_ref.backward(closure_loss, optimizer)
-
-                    # track metrics for callbacks
-                    all_callback_metrics.append(callback_metrics)
-
-                    # track progress bar metrics
-                    self.add_tqdm_metrics(progress_bar_metrics)
-                    all_log_metrics.append(log_metrics)
-
-                    # insert after step hook
-                    if self.is_function_implemented('on_after_backward'):
+                        # backward pass
                         model_ref = self.get_model()
-                        model_ref.on_after_backward()
+                        if closure_loss.requires_grad:
+                            if self.use_amp:
+                                self.scaler.scale(closure_loss).backward()
+                            else:
+                                model_ref.backward(closure_loss, optimizer)
+
+                        # track metrics for callbacks
+                        all_callback_metrics.append(callback_metrics)
+
+                        # track progress bar metrics
+                        self.add_tqdm_metrics(progress_bar_metrics)
+                        all_log_metrics.append(log_metrics)
+
+                        # insert after step hook
+                        if self.is_function_implemented('on_after_backward'):
+                            model_ref = self.get_model()
+                            model_ref.on_after_backward()
 
                     return closure_loss
 
@@ -1539,12 +1549,14 @@ class BaseTrainer:
                                 self.track_grad_norm)
 
                     # clip gradients
+                    if self.use_amp:
+                        self.scaler.unscale_(optimizer)
                     self.clip_gradients()
 
                     # calls .step(), .zero_grad()
                     # override function to modify this behavior
                     model = self.get_model()
-                    model.optimizer_step(self.current_epoch, batch_idx, optimizer, opt_idx)
+                    model.optimizer_step(self.current_epoch, batch_idx, optimizer, opt_idx,self.use_amp,self.scaler)
 
                     # calculate running loss for display
                     self.running_loss.append(self.batch_loss_value)
