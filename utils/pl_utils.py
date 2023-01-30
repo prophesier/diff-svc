@@ -463,9 +463,9 @@ class BaseTrainer:
         self.logger.rank = 0
         self.row_log_interval = row_log_interval
         self.scaler = None
+        self.use_amp = use_amp
         if self.use_amp:
             self.scaler = torch.cuda.amp.GradScaler()
-        self.use_amp = use_amp
     @property
     def num_gpus(self):
         gpus = self.data_parallel_device_ids
