@@ -3,7 +3,7 @@ Singing Voice Conversion via diffusion model
 
 
 # * 주의사항 *
-## 1. **설명대로 안하고 웨않된데? 하지 마세요** (물론 능력있으신 분들은 커스텀해서 쓰세요)
+## 1. **모르는건 물어봐도 되는데 대답이 느릴 수 있습니다**(위쪽에 Issues 에다가 질문있으면 작성해주세요. 유툽댓글은 확인 잘 안합니다.)
 ## 2. **이 프로젝트는 학술 교류 목적으로 설립되었으며 프로덕션 환경을 위한 것이 아닙니다. 본 프로젝트의 모델에서 발생하는 음원으로 인해 발생하는 저작권 문제에 대해서는 책임을 지지 않습니다.**
 
 # local GPU에서 Diff-SVC 사용방법
@@ -65,7 +65,8 @@ Singing Voice Conversion via diffusion model
     # progress bar가 생기면서 쭈루룩 뭔가 처리가 되어가는게 보일것이다.
     # 입력 파일의 길이가 몇시간단위로 길면 맨처음에는 좀 오래걸릴수 있음(파일 1개당 3~7분?)
     ```
-4. 3번 코드가 돌아가는 걸 기다리는 동안에 학습 configure를 설정해주자
+4. preprocess_out 폴더에 final폴더(use_extract=False)나 voice폴더(use_extract=True)에 wav파일들이 잔뜩 있을 것이다. 그것들을 복사해서 바로 아래 configure에서 설정할 raw_data_dir에 복붙해준다.
+5. 학습 configure를 설정
     1. training폴더에 config.yaml파일을 메모장으로 열어준다.
     2. 바꿔야하는 항목들을 보기좋게 위에다가 올려놨다. 아래 내용에서 'test'가 들어간 부분을 님들 맘에 맞게 수정해주면 된다. 그리고 저장 (개발자거나 좀 더 좋은 퀄리티를 위해 커스텀할 사람은 아래 변수들을 추가로 바꿔주면 된다)
         ```
@@ -85,7 +86,6 @@ Singing Voice Conversion via diffusion model
         ## 모델이 한번에 학습할 양을 정한다 (CUDA out of memory에러가 나면 이 숫자를 줄이면 된다)
         max_sentences: 10
         ```
-5. preprocess_out 폴더에 final폴더(use_extract=False)나 voice폴더(use_extract=True)에 wav파일들이 잔뜩 있을 것이다. 그것들을 복사해서 configure에서 설정한 raw_data_dir에 복붙해준다.
 6. 실제 학습에 사용할 수 있게 binarize 해준다.
     ```
     python preprocessing/binarize.py --config training/config.yaml
