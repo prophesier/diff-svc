@@ -1,8 +1,12 @@
 # Diff-SVC
 Singing Voice Conversion via diffusion model
 
+
+# * 주의사항 *
+## 1. **설명대로 안하고 웨않된데? 하지 마세요** (물론 능력있으신 분들은 커스텀해서 쓰세요)
+## 2. **이 프로젝트는 학술 교류 목적으로 설립되었으며 프로덕션 환경을 위한 것이 아닙니다. 본 프로젝트의 모델에서 발생하는 음원으로 인해 발생하는 저작권 문제에 대해서는 책임을 지지 않습니다.**
+
 # local GPU에서 Diff-SVC 사용방법
-## **설명대로 안하고 웨않된데? 하지 마세요** (물론 능력있으신 분들은 커스텀해서 쓰세요)
 ## 코드 구동을 위한 프로그램 설치 및 코드, 체크포인트 다운로드
 1. 아나콘다3 설치 (https://www.anaconda.com/products/distribution)
     - 설치 중간에 PATH환경변수에 추가하겠냐는 질문이 있는데, 이 단계에서 등록하는게 마음이 편함
@@ -95,7 +99,23 @@ Singing Voice Conversion via diffusion model
     python run.py --config training/config.yaml --exp_name test --reset 
     ```
 2. 학습 끝나면 이제 결과물을 뽑을 차례
-    1. 
+    1. infer.py를 메모장으로 열고 님이 위에 설정한 configure에 맞게 수정해야함
+        ```
+        # 76 line
+        # 님이 위에 설정한 work_dir에 프로젝트 이름과 같게 설정해주면 댐
+        project_name = "test"  
+
+        # 81 line
+        # 결과물을 뽑을 원본 파일, 즉 목소리가 변경되기를 원하는 파일
+        # 이 파일 역시 배경음이 다 지워지고 목소리만 남아있는 상태여야함
+        # 한번에 여러개를 변경하고 싶으면 ["test1.wav", "test2.wav"] 이런식으로 늘리면댐
+        file_names = ["test.wav"]
+        ```
+    2. 설정이 끝났으면 file_names list안에 이름만 넣어놨던 파일들을 raw 폴더 안으로 옮겨준다.
+    3. 그 다음에 다음 코드 실행하면 results 폴더 안에 결과 출력
+        ```
+        python infer.py
+        ```
 Original updates translated into english
 ## Updates
 >2022.12.4 44.1kHz vocoder added, officially providing support for 44.1kHz models!
