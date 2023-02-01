@@ -6,7 +6,7 @@ Singing Voice Conversion via diffusion model
 ## 1. **모르는건 물어봐도 되는데 대답이 느릴 수 있습니다**(위쪽에 Issues 에다가 질문있으면 작성해주세요. 유툽댓글은 확인 잘 안합니다.)
 ## 2. **이 프로젝트는 학술 교류 목적으로 설립되었으며 프로덕션 환경을 위한 것이 아닙니다. 본 프로젝트의 모델에서 발생하는 음원으로 인해 발생하는 저작권 문제에 대해서는 책임을 지지 않습니다.**
 ## 튜토리얼 영상(아래 사용방법과 일치합니다)
-[![유튜브 영상](https:img.youtube.com/vi/8hJ1Wullg_g/0.jpg)](https://www.youtube.com/watch?v=8hJ1Wullg_g)
+[![유튜브 영상](https://img.youtube.com/vi/8hJ1Wullg_g/0.jpg)](https://www.youtube.com/watch?v=8hJ1Wullg_g)
 # local GPU에서 Diff-SVC 사용방법
 ## 코드 구동을 위한 프로그램 설치 및 코드, 체크포인트 다운로드
 1. 아나콘다3 설치 (https://www.anaconda.com/products/distribution)
