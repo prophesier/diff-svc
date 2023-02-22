@@ -180,7 +180,7 @@ class Pred(nn.Module):
         return x_pred
 
 
-class GaussianDiffusion(nn.Module):
+class GaussianDiffusionOnnx(nn.Module):
     def __init__(self, phone_encoder, out_dims, denoise_fn,
                  timesteps=1000, K_step=1000, loss_type=hparams.get('diff_loss_type', 'l1'), betas=None, spec_min=None,
                  spec_max=None):
