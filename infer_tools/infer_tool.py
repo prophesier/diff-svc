@@ -20,6 +20,7 @@ from preprocessing.data_gen_utils import get_pitch_parselmouth, get_pitch_crepe
 from preprocessing.hubertinfer import Hubertencoder
 from utils.hparams import hparams, set_hparams
 from utils.pitch_utils import denorm_f0, norm_interp_f0
+from modules.diff.diffusion_V2 import GaussianDiffusionOnnx
 
 if os.path.exists("chunks_temp.json"):
     os.remove("chunks_temp.json")
@@ -332,3 +333,41 @@ def processed_input2batch(samples):
         'uv': uv,
     }
     return batch
+
+class SvcOnnx:
+    def __init__(self, project_name, config_name, hubert_gpu, model_path):
+        self.project_name = project_name
+        self.DIFF_DECODERS = {
+            'wavenet': lambda hp: DiffNet(hp['audio_num_mel_bins']),
+            'fft': lambda hp: FFT(
+                hp['hidden_size'], hp['dec_layers'], hp['dec_ffn_kernel_size'], hp['num_heads']),
+        }
+
+        self.model_path = model_path
+        self.dev = torch.device("cuda")
+
+        self._ = set_hparams(config=config_name, exp_name=self.project_name, infer=True,
+                             reset=True,
+                             hparams_str='',
+                             print_hparams=False)
+
+        self.mel_bins = hparams['audio_num_mel_bins']
+        self.model = GaussianDiffusionOnnx(
+            phone_encoder=Hubertencoder(hparams['hubert_path']),
+            out_dims=self.mel_bins, denoise_fn=self.DIFF_DECODERS[hparams['diff_decoder_type']](hparams),
+            timesteps=hparams['timesteps'],
+            K_step=hparams['K_step'],
+            loss_type=hparams['diff_loss_type'],
+            spec_min=hparams['spec_min'], spec_max=hparams['spec_max'],
+        )
+        self.load_ckpt()
+        self.model.cuda()
+        hparams['hubert_gpu'] = hubert_gpu
+        self.hubert = Hubertencoder(hparams['hubert_path'])
+        self.pe = PitchExtractor().cuda()
+        utils.load_ckpt(self.pe, hparams['pe_ckpt'], 'model', strict=True)
+        self.pe.eval()
+        self.vocoder = get_vocoder_cls(hparams)()
+
+    def load_ckpt(self, model_name='model', force=True, strict=True):
+        utils.load_ckpt(self.model, self.model_path, model_name, force, strict)
