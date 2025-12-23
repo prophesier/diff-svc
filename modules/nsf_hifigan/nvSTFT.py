@@ -93,7 +93,7 @@ class STFT():
         y = y.squeeze(1)
 
         spec = torch.stft(y, n_fft, hop_length=hop_length, win_length=win_size, window=self.hann_window[str(y.device)],
-                          center=center, pad_mode='reflect', normalized=False, onesided=True)
+                          center=center, pad_mode='reflect', normalized=False, onesided=True, return_complex=False)
         # print(111,spec)
         spec = torch.sqrt(spec.pow(2).sum(-1)+(1e-9))
         # print(222,spec)
